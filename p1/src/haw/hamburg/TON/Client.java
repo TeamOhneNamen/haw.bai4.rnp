@@ -12,48 +12,43 @@ public class Client {
 
 	public static void main(String[] args) throws IOException {
 		Socket server = null;
-			try {
-				server = new Socket ("192.168.178.23", 25615);
-				BufferedReader in = new BufferedReader(new InputStreamReader(server.getInputStream()));
-				String serverResponse = in.readLine();
-				System.out.println("[Server sagt] " +serverResponse);
-				
-			} catch (UnknownHostException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		    
-			
+		try {
+			server = new Socket("localhost", 25615);
+			BufferedReader in = new BufferedReader(new InputStreamReader(server.getInputStream()));
+			String serverResponse = in.readLine();
+			System.out.println("[Server sagt] " + serverResponse);
+
 			while (true) {
-				
-				Scanner sc = new Scanner(System.in); 
+
+				Scanner sc = new Scanner(System.in);
 				String befehl = sc.nextLine();
-				
+
 				if (befehl == "bye") {
 					server.close();
 					sc.close();
 				}
-				
-				if (befehl.length()<20 && befehl.length()>0 ) {
-					
+
+				if (befehl.length() < 30 && befehl.length() > 0) {
+
 					PrintWriter out = new PrintWriter(server.getOutputStream(), true);
 					out.println(befehl);
-					BufferedReader in = new BufferedReader(new InputStreamReader(server.getInputStream()));
-					String serverResponse = in.readLine();
+					serverResponse = in.readLine();
 					if (serverResponse.equals("OK SHUTDOWN")) {
 						System.exit(-1);
 					}
-					System.out.println("[Server sagt] " +serverResponse);
-					
+					System.out.println("[Server sagt] " + serverResponse);
+
 				}
-				
-				
-				
+
 			}
-			
+
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
-	
+
 }

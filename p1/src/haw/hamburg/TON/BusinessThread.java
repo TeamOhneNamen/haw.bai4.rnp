@@ -6,20 +6,21 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-public class BuissnesThread extends Thread{
+public class BusinessThread extends Thread{
 
+	boolean clientAlive = true;
 	Socket client;
 	Server server;
 	static String passwort = "LOLOKOPTER";
 	
-	public BuissnesThread(Socket client) {
+	public BusinessThread(Socket client) {
 		this.client = client;
 	}
 	
 	@Override
 	public void run() {
 		
-		while (true) {
+		while (clientAlive) {
 			BufferedReader in;
 			try {
 				in = new BufferedReader(new InputStreamReader(client.getInputStream()));
@@ -50,15 +51,16 @@ public class BuissnesThread extends Thread{
 
 					PrintWriter out = new PrintWriter(client.getOutputStream(), true); 
 					out.println("OK SHUTDOWN");
-//					throw new NewException();
-					
+					System.exit(-1);
 				}
 				
 				
 				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.err.println("[Server] Verbindung zu Client verloren");
+				clientAlive = false;
+				
 			}
 			
 		}
