@@ -4,52 +4,70 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 
 public class Server {
 
 	
 	// port festlegen
-	static int port = 25615;
+	
 	static ServerSocket sServer;
 	static int verbindungen;
-	static int moeglicheVerbindungen;
-	static ArrayList<Socket> clientList = new ArrayList<Socket>();
+	static int maxVerbindungen = 3;
+	static int port = 25615;
+	
+	static BusinessThreadList buisThreadList = new BusinessThreadList();
 	
 	//Constructor 
 	public Server() {
 		port = 25615;
 	}
-
+	
 	public static void main(String[] args) {
 
+		for (int i = 0; i < maxVerbindungen; i++) {
+			buisThreadList.add(new BusinessThread(null));
+		}
+		
+		
 		// versuche den Server auf dem port zu starten
 		try {
 			sServer = new ServerSocket(port);
-
+			System.out.println("[Server] Server wurde auf Port " + port + " gestartet!");
 		} catch (IOException e) {
-			System.out.println("[Server] error to bind Port: " + port);
+			System.out.println("[Server] error to bind Port: " +port);
 			System.exit(-1);
 		}
-
+		
 		while (true) {
-
+			
 			try {
-				
-				System.out.println("[Server] wartet auf verbindung...");
 				
 				//blockiert bis neue Verbindung eintrifft
 				Socket client = sServer.accept();
-				clientList.add(client);
 				
-				//sende Clienten bestätigung über die Verbindung
-				PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-				out.println("Verbindung hergestellt!");
-				System.out.println("[Server] Client wurde verbunden!");
-				
-				//starte für jeden Clienten einen neuen Thread
-				BusinessThread buisThread = new BusinessThread(client);
-				buisThread.start();
+				if (buisThreadList.getFree()!=-1) {
+					
+					
+					BusinessThread tempClient = new BusinessThread(client);
+					int freeThread = buisThreadList.getFree();
+					buisThreadList.set(freeThread, tempClient) ;
+					tempClient.start();
+
+					//sende Clienten bestätigung über die Verbindung
+					PrintWriter out = new PrintWriter(client.getOutputStream(), true);
+					out.println("Verbindung hergestellt!");
+					
+					//Serverausgaben
+					System.out.println("[Server] Client wurde mit Thread " +freeThread +" verbunden!");
+					System.out.println("[Server] " + buisThreadList.manyConnections() + "/" +maxVerbindungen);
+					
+				}else {
+					PrintWriter out = new PrintWriter(client.getOutputStream(), true);
+					out.println("Der Server ist ausgelastet!");
+					System.out.println("[Server] Client wurde nicht verbunden!");
+					
+					client.close();
+				}
 				
 			} catch (IOException e) {
 				// TODO
@@ -60,10 +78,4 @@ public class Server {
 		}
 
 	}
-	
-	public void shutdown() {
-		System.exit(-1);
-
-	}
-
 }

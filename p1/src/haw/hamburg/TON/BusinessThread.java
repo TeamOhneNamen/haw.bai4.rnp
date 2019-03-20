@@ -8,10 +8,9 @@ import java.net.Socket;
 
 public class BusinessThread extends Thread{
 
-	boolean clientAlive = true;
-	Socket client;
-	Server server;
-	static String passwort = "LOLOKOPTER";
+	public boolean clientAlive = false;
+	Socket client = null;
+	static String passwort = "1234";
 	
 	public BusinessThread(Socket client) {
 		this.client = client;
@@ -19,39 +18,79 @@ public class BusinessThread extends Thread{
 	
 	@Override
 	public void run() {
-		
+		clientAlive = true;
 		while (clientAlive) {
 			BufferedReader in;
 			try {
 				in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 				String serverResponse = in.readLine();
 				System.out.println("[Client fragt] " +serverResponse);
-				String command = serverResponse.substring(0, serverResponse.indexOf(" "));
-				String arguments = serverResponse.substring(serverResponse.indexOf(" "), serverResponse.length());
+				String command = "";
+				String arguments = "";
 				
-				if (command.equals("UPPER")) {
-
-					PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-					out.println("OK " + arguments.toUpperCase());
+				try {
+					command = serverResponse.substring(0, serverResponse.indexOf(" "));
+					arguments = serverResponse.substring(serverResponse.indexOf(" ")+1, serverResponse.length());
+				
+				} catch (Exception e) {
+					if (!serverResponse.contains(" ")) {
+						
+						if (serverResponse.equals("BYE")) {
+							
+							sendOkay("BYE");
+							client.close();
+						}else {
+							sendError("Argumente Fehlen oder Command nicht vorhanden");
+						}
+					}
+				}
+				
+				
+				if (command.equals("UPPERCASE")) {
 					
-				}else if (command.equals("LOWER")) {
+					if (arguments.isEmpty()) {
+						sendError("es konnte leider kein Argument gefunden werden");
+					}else {
+						sendOkay(arguments.toUpperCase());
+					}
+					
+					
+				}else if (command.equals("LOWERCASE")) {
 
-					PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-					out.println("OK " + arguments.toLowerCase());
+					if (arguments.isEmpty()) {
+						sendError("es konnte leider kein Argument gefunden werden");
+					}else {
+						sendOkay(arguments.toLowerCase());
+					}
+					
 					
 				}else if (command.equals("REVERSE")) {
-
-					PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-					StringBuilder input1 = new StringBuilder(); 
-			        input1.append(arguments);
-			        input1 = input1.reverse(); 
-					out.println("OK " + input1);
+					
+					if (arguments.isEmpty()) {
+						sendError("es konnte leider kein Argument gefunden werden");
+					}else {
+						StringBuilder input1 = new StringBuilder(); 
+				        input1.append(arguments);
+				        input1 = input1.reverse(); 
+				        sendOkay(input1.toString());
+					}
+					
 					
 				}else if (command.equals("SHUTDOWN")) {
 
-					PrintWriter out = new PrintWriter(client.getOutputStream(), true); 
-					out.println("OK SHUTDOWN");
-					System.exit(-1);
+					if (arguments.equals(passwort)) {
+						sendOkay("SHUTDOWN");
+						System.exit(-1);
+					} else {
+						sendError("Passwort stimmt nicht!");
+					}
+					
+				}else {
+					if (command.equals("BYE")) {
+						sendError("es darf kein argument geben");
+					}else {
+						sendError("command stimmt nicht!");
+					}
 				}
 				
 				
@@ -68,8 +107,14 @@ public class BusinessThread extends Thread{
 	}
 
 	
+	
+	private void sendError(String msg) throws IOException {
+		PrintWriter out = new PrintWriter(client.getOutputStream(), true);
+		out.println("ERROR \"" +  msg + "\"");
+	}
+	
+	private void sendOkay(String msg) throws IOException {
+		PrintWriter out = new PrintWriter(client.getOutputStream(), true);
+		out.println("OK \"" + msg + "\"");
+	}
 }
-
-//public class NewException() extends Exception {
-//	
-//};

@@ -11,10 +11,10 @@ import java.util.Scanner;
 public class Client {
 
 	public static void main(String[] args) throws IOException {
-		Socket server = null;
+		Socket connect2server = null;
 		try {
-			server = new Socket("localhost", 25615);
-			BufferedReader in = new BufferedReader(new InputStreamReader(server.getInputStream()));
+			connect2server = new Socket("localhost", 25615);
+			BufferedReader in = new BufferedReader(new InputStreamReader(connect2server.getInputStream()));
 			String serverResponse = in.readLine();
 			System.out.println("[Server sagt] " + serverResponse);
 
@@ -23,21 +23,23 @@ public class Client {
 				Scanner sc = new Scanner(System.in);
 				String befehl = sc.nextLine();
 
-				if (befehl == "bye") {
-					server.close();
+				if (befehl == "BYE") {
+					PrintWriter out = new PrintWriter(connect2server.getOutputStream(), true);
+					out.println(befehl);
 					sc.close();
+					System.exit(-1);
+					
 				}
 
 				if (befehl.length() < 30 && befehl.length() > 0) {
 
-					PrintWriter out = new PrintWriter(server.getOutputStream(), true);
+					PrintWriter out = new PrintWriter(connect2server.getOutputStream(), true);
 					out.println(befehl);
 					serverResponse = in.readLine();
-					if (serverResponse.equals("OK SHUTDOWN")) {
+					System.out.println("[Server sagt] " + serverResponse);
+					if (serverResponse.equals("OK \"SHUTDOWN\"")) {
 						System.exit(-1);
 					}
-					System.out.println("[Server sagt] " + serverResponse);
-
 				}
 
 			}
