@@ -16,7 +16,7 @@ public class Client {
 			connect2server = new Socket("localhost", 25615);
 			BufferedReader in = new BufferedReader(new InputStreamReader(connect2server.getInputStream()));
 			String serverResponse = in.readLine();
-			System.out.println("[Server sagt] " + serverResponse);
+			System.out.println(serverResponse);
 
 			while (true) {
 
@@ -36,7 +36,7 @@ public class Client {
 					PrintWriter out = new PrintWriter(connect2server.getOutputStream(), true);
 					out.println(befehl);
 					serverResponse = in.readLine();
-					System.out.println("[Server sagt] " + serverResponse);
+					System.out.println(serverResponse);
 					if (serverResponse.equals("OK \"SHUTDOWN\"")) {
 						System.exit(-1);
 					}

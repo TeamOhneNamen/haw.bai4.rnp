@@ -54,28 +54,39 @@ public class Server {
 					tempClient.start();
 
 					//sende Clienten bestätigung über die Verbindung
-					PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-					out.println("Verbindung hergestellt!");
+					sendOkay("Verbindung zu " + sServer.getInetAddress() + " hergestellt!", client);
 					
 					//Serverausgaben
-					System.out.println("[Server] Client wurde mit Thread " +freeThread +" verbunden!");
-					System.out.println("[Server] " + buisThreadList.manyConnections() + "/" +maxVerbindungen);
+					printOut("Client wurde mit Thread " +freeThread +" verbunden!");
+					printOut(buisThreadList.manyConnections() + "/" +maxVerbindungen);
 					
 				}else {
-					PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-					out.println("Der Server ist ausgelastet!");
-					System.out.println("[Server] Client wurde nicht verbunden!");
+					sendError("Der Server ist ausgelastet!", client);
+					printOut("Client wurde nicht verbunden!");
 					
 					client.close();
 				}
 				
 			} catch (IOException e) {
-				// TODO
-				System.out.println("Ein Fehler ist aufgetreten ");
-				Thread.currentThread().interrupt();
+				printOut("Ein Fehler ist aufgetreten: " + e.getMessage());
 			}
 
 		}
 
 	}
+	
+	private static void sendError(String msg, Socket client) throws IOException {
+		PrintWriter out = new PrintWriter(client.getOutputStream(), true);
+		out.println("ERROR \"" +  msg + "\"");
+	}
+	
+	private static void sendOkay(String msg,  Socket client) throws IOException {
+		PrintWriter out = new PrintWriter(client.getOutputStream(), true);
+		out.println("OK \"" + msg + "\"");
+	}
+	
+	private static void printOut(String msg) {
+		System.out.println("[SERVER] \"" + msg + "\"");
+	}
+	
 }

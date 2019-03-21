@@ -24,7 +24,6 @@ public class BusinessThread extends Thread{
 			try {
 				in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 				String serverResponse = in.readLine();
-				System.out.println("[Client fragt] " +serverResponse);
 				String command = "";
 				String arguments = "";
 				
@@ -89,7 +88,7 @@ public class BusinessThread extends Thread{
 					if (command.equals("BYE")) {
 						sendError("es darf kein argument geben");
 					}else {
-						sendError("command stimmt nicht!");
+						sendError("UNKNOWN COMMAND");
 					}
 				}
 				
@@ -97,7 +96,7 @@ public class BusinessThread extends Thread{
 				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				System.err.println("[Server] Verbindung zu Client verloren");
+				printOut("Verbindung zu Client verloren");
 				clientAlive = false;
 				
 			}
@@ -116,5 +115,9 @@ public class BusinessThread extends Thread{
 	private void sendOkay(String msg) throws IOException {
 		PrintWriter out = new PrintWriter(client.getOutputStream(), true);
 		out.println("OK \"" + msg + "\"");
+	}
+	
+	private void printOut(String msg) {
+		System.out.println("[SERVER] \"" + msg + "\"");
 	}
 }
