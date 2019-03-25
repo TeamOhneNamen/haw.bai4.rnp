@@ -22,7 +22,7 @@ public class BusinessThread extends Thread{
 		while (clientAlive) {
 			BufferedReader in;
 			try {
-				in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+				in = new BufferedReader(new InputStreamReader(client.getInputStream(), "UTF-8"));
 				String serverResponse = in.readLine();
 				String command = "";
 				String arguments = "";

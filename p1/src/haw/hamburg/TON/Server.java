@@ -52,6 +52,7 @@ public class Server {
 					
 					BusinessThread tempClient = new BusinessThread(client);
 					
+					//startet einen behandelnden Thread
 					buisThreadList.set(freeThread, tempClient) ;
 					tempClient.start();
 
