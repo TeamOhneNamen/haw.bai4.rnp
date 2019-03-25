@@ -32,24 +32,26 @@ public class Server {
 		// versuche den Server auf dem port zu starten
 		try {
 			sServer = new ServerSocket(port);
-			System.out.println("[Server] Server wurde auf Port " + port + " gestartet!");
+			printOut("Server wurde auf Port " + port + " gestartet!");
 		} catch (IOException e) {
-			System.out.println("[Server] error to bind Port: " +port);
+			printOut("error to bind Port: " +port);
 			System.exit(-1);
 		}
 		
+
+		// warte auf eingehende VErbindungen
 		while (true) {
 			
 			try {
 				
 				//blockiert bis neue Verbindung eintrifft
 				Socket client = sServer.accept();
+				int freeThread = buisThreadList.getFree();
 				
-				if (buisThreadList.getFree()!=-1) {
-					
+				if (freeThread!=-1) {
 					
 					BusinessThread tempClient = new BusinessThread(client);
-					int freeThread = buisThreadList.getFree();
+					
 					buisThreadList.set(freeThread, tempClient) ;
 					tempClient.start();
 
@@ -61,10 +63,14 @@ public class Server {
 					printOut(buisThreadList.manyConnections() + "/" +maxVerbindungen);
 					
 				}else {
+					
+					//sende Clienten Fehler über die Verbindung
 					sendError("Der Server ist ausgelastet!", client);
+					client.close();
+					
+					//Serverausgaben
 					printOut("Client wurde nicht verbunden!");
 					
-					client.close();
 				}
 				
 			} catch (IOException e) {
@@ -76,11 +82,13 @@ public class Server {
 	}
 	
 	private static void sendError(String msg, Socket client) throws IOException {
+		//PrintWriter printet den string und Terminiert mit "\n"
 		PrintWriter out = new PrintWriter(client.getOutputStream(), true);
 		out.println("ERROR \"" +  msg + "\"");
 	}
 	
 	private static void sendOkay(String msg,  Socket client) throws IOException {
+		//PrintWriter printet den string und Terminiert mit "\n"
 		PrintWriter out = new PrintWriter(client.getOutputStream(), true);
 		out.println("OK \"" + msg + "\"");
 	}
