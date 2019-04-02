@@ -86,7 +86,7 @@ public class BusinessThread extends Thread{
 					
 				}else {
 					if (command.equals("BYE")) {
-						sendError("es darf kein argument geben");
+						sendError("es darf keine argumente geben");
 					}else {
 						sendError("UNKNOWN COMMAND");
 					}
