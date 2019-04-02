@@ -13,7 +13,7 @@ public class Client {
 	public static void main(String[] args) throws IOException {
 		Socket connect2server = null;
 		try {
-			connect2server = new Socket("192.168.178.23", 25615);
+			connect2server = new Socket("localhost", 25615);
 			BufferedReader in = new BufferedReader(new InputStreamReader(connect2server.getInputStream()));
 			String serverResponse = in.readLine();
 			System.out.println(serverResponse);
@@ -31,7 +31,7 @@ public class Client {
 					
 				}
 
-				if (befehl.length() < 255 && befehl.length() > 0) {
+				if (befehl.getBytes().length < 255 && befehl.getBytes().length > 0) {
 
 					PrintWriter out = new PrintWriter(connect2server.getOutputStream(), true);
 					out.println(befehl);
