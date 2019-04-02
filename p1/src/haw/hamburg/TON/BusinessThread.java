@@ -5,17 +5,25 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.ArrayList;
 
-public class BusinessThread extends Thread{
+public class BusinessThread extends Thread {
 
 	public boolean clientAlive = false;
 	Socket client = null;
 	static String passwort = "1234";
-	
+	ArrayList<String> commands = new ArrayList<String>();
+
 	public BusinessThread(Socket client) {
 		this.client = client;
+
+		commands.add("UPPERCASE");
+		commands.add("LOWERCASE");
+		commands.add("REVERSE");
+		commands.add("SHUTDOWN");
+		commands.add("BYE");
 	}
-	
+
 	@Override
 	public void run() {
 		clientAlive = true;
@@ -24,99 +32,163 @@ public class BusinessThread extends Thread{
 			try {
 				in = new BufferedReader(new InputStreamReader(client.getInputStream(), "UTF-8"));
 				String serverResponse = in.readLine();
-				String command = "";
-				String arguments = "";
-				
-				try {
-					command = serverResponse.substring(0, serverResponse.indexOf(" "));
-					arguments = serverResponse.substring(serverResponse.indexOf(" ")+1, serverResponse.length());
-				
-				} catch (Exception e) {
-					if (!serverResponse.contains(" ")) {
-						
-						if (serverResponse.equals("BYE")) {
-							
-							sendOkay("BYE");
-							client.close();
-						}else {
-							sendError("Argumente Fehlen oder Command nicht vorhanden");
+
+				int command = -1;
+				String tempMsg = "";
+
+				for (int i = 0; i < commands.size(); i++) {
+					if (commands.get(i).length() <= serverResponse.length()) {
+						if (serverResponse.startsWith(commands.get(i))) {
+							tempMsg = serverResponse.substring(commands.get(i).length());
+							command = i;
+							break;
 						}
 					}
+
 				}
-				
-				
-				if (command.equals("UPPERCASE")) {
-					
-					if (arguments.isEmpty()) {
-						sendError("es konnte leider kein Argument gefunden werden");
-					}else {
-						sendOkay(arguments.toUpperCase());
-					}
-					
-					
-				}else if (command.equals("LOWERCASE")) {
 
-					if (arguments.isEmpty()) {
-						sendError("es konnte leider kein Argument gefunden werden");
-					}else {
-						sendOkay(arguments.toLowerCase());
-					}
-					
-					
-				}else if (command.equals("REVERSE")) {
-					
-					if (arguments.isEmpty()) {
-						sendError("es konnte leider kein Argument gefunden werden");
-					}else {
-						StringBuilder input1 = new StringBuilder(); 
-				        input1.append(arguments);
-				        input1 = input1.reverse(); 
-				        sendOkay(input1.toString());
-					}
-					
-					
-				}else if (command.equals("SHUTDOWN")) {
+				switch (command) {
+				case 0:
 
-					if (arguments.equals(passwort)) {
-						sendOkay("SHUTDOWN");
-						System.exit(-1);
+					if (serverResponse.startsWith(commands.get(command) + " ")) {
+						if (serverResponse.length() > commands.get(command).length() + 1) {
+							commandUPPERCASE(cutBlank(tempMsg));
+						} else {
+							sendErrorNoArgs();
+						}
 					} else {
-						sendError("Passwort stimmt nicht!");
+						if (serverResponse.length() == commands.get(command).length()) {
+							sendErrorNoArgs();
+						} else {
+							sendErrorUnknwnCom();
+						}
 					}
-					
-				}else {
-					if (command.equals("BYE")) {
-						sendError("es darf keine argumente geben");
-					}else {
-						sendError("UNKNOWN COMMAND");
+
+					break;
+				case 1:
+
+					if (serverResponse.startsWith(commands.get(command) + " ")) {
+						if (serverResponse.length() > commands.get(command).length() + 1) {
+							commandLOWERCASE(cutBlank(tempMsg));
+						} else {
+							sendErrorNoArgs();
+						}
+					} else {
+						if (serverResponse.length() == commands.get(command).length()) {
+							sendErrorNoArgs();
+						} else {
+							sendErrorUnknwnCom();
+						}
 					}
+					break;
+				case 2:
+					if (serverResponse.startsWith(commands.get(command) + " ")) {
+						if (serverResponse.length() > commands.get(command).length() + 1) {
+							commandREVERSE(cutBlank(tempMsg));
+						} else {
+							sendErrorNoArgs();
+						}
+					} else {
+						if (serverResponse.length() == commands.get(command).length()) {
+							sendErrorNoArgs();
+						} else {
+							sendErrorUnknwnCom();
+						}
+					}
+
+					break;
+
+				case 3:
+					commandSHUTDOWN(cutBlank(tempMsg));
+					break;
+
+				case 4:
+					if (serverResponse.equals("BYE")) {
+						commandBYE(client);
+					} else {
+						sendError("NO ARGUMENT EXCEPTED");
+					}
+					break;
+
+				case -1:
+					sendErrorUnknwnCom();
+					break;
+				default:
+					break;
 				}
-				
-				
-				
+
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				printOut("Verbindung zu Client verloren");
+				printOut("CONNECRION LOST");
 				clientAlive = false;
-				
+
 			}
-			
+
 		}
-		
+
 	}
 
-	
-	
+	private String cutBlank(String msg) {
+		return msg.substring(1);
+	}
+
+	private void commandSHUTDOWN(String serverResponse) throws IOException {
+		if (serverResponse.equals(passwort)) {
+			sendOkay("SHUTDOWN");
+			System.exit(-1);
+		} else {
+			sendError("Passwort stimmt nicht!");
+		}
+	}
+
+	private void commandBYE(Socket client) throws IOException {
+		sendOkay("BYE");
+		client.close();
+	}
+
+	private void commandREVERSE(String serverResponse) throws IOException {
+		StringBuilder input1 = new StringBuilder();
+		input1.append(serverResponse);
+		input1 = input1.reverse();
+		sendOkay(input1.toString());
+	}
+
+	private void commandLOWERCASE(String serverResponse) throws IOException {
+		sendOkay(serverResponse.toLowerCase());
+	}
+
+	private void commandUPPERCASE(String serverResponse) throws IOException {
+		sendOkay(serverResponse.toUpperCase());
+	}
+
+	private void sendErrorNoArgs() throws IOException {
+		sendError("SYNTAX ERROR NO ARGUMENT FOUND");
+	}
+
+	private void sendErrorUnknwnCom() throws IOException {
+		sendError("UNKNOWN COMMAND");
+	}
+
 	private void sendError(String msg) throws IOException {
-		PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-		out.println("ERROR \"" +  msg + "\"");
+		String output = "ERROR " + msg;
+		send(output);
 	}
-	
+
 	private void sendOkay(String msg) throws IOException {
-		PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-		out.println("OK \"" + msg + "\"");
+		String output = "OK " + msg;
+		send(output);
 	}
-	
+
+	private void send(String output) throws IOException {
+		PrintWriter out = new PrintWriter(client.getOutputStream(), true);
+		if (output.getBytes().length < 255) {
+			out.println(output);
+		} else {
+			out.println("ERROR STRING TOO LONG");
+		}
+
+	}
+
 	private void printOut(String msg) {
 		System.out.println("[SERVER] \"" + msg + "\"");
 	}

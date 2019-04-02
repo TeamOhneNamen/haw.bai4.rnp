@@ -23,24 +23,21 @@ public class Client {
 				Scanner sc = new Scanner(System.in);
 				String befehl = sc.nextLine();
 
-				if (befehl == "BYE") {
-					PrintWriter out = new PrintWriter(connect2server.getOutputStream(), true);
-					out.println(befehl);
-					sc.close();
-					System.exit(-1);
-					
-				}
-
 				if (befehl.getBytes().length < 255 && befehl.getBytes().length > 0) {
 
 					PrintWriter out = new PrintWriter(connect2server.getOutputStream(), true);
 					out.println(befehl);
-					
+
 					serverResponse = in.readLine();
 					System.out.println(serverResponse);
-					if (serverResponse.equals("OK \"SHUTDOWN\"")) {
+					if (serverResponse.equals("OK BYE")) {
+						sc.close();
+						System.exit(-1);
+					} else if (serverResponse.equals("OK SHUTDOWN")) {
 						System.exit(-1);
 					}
+				} else {
+					System.out.println("ERROR STRING TOO LONG");
 				}
 
 			}

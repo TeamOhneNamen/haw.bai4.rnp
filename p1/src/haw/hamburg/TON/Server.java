@@ -57,7 +57,7 @@ public class Server {
 					tempClient.start();
 
 					//sende Clienten bestätigung über die Verbindung
-					sendOkay("Verbindung zu " + sServer.getInetAddress() + " hergestellt!", client);
+					sendOkay("Verbindung zu " + sServer.getInetAddress().getHostAddress() + ":" + sServer.getLocalPort() + " hergestellt!", client);
 					
 					//Serverausgaben
 					printOut("Client wurde mit Thread " +freeThread +" verbunden!");
