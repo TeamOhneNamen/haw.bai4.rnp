@@ -6,20 +6,26 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 public class Client {
 
+	static boolean shutdown = false;
+	
 	public static void main(String[] args) throws IOException {
+		
 		Socket connect2server = null;
 		try {
 			connect2server = new Socket("localhost", 25615);
+			
+			connect2server.setSoTimeout(30000);
 			BufferedReader in = new BufferedReader(new InputStreamReader(connect2server.getInputStream(), "UTF-8"));
 			String serverResponse = in.readLine();
 			System.out.println(serverResponse);
-
+			
 			while (true) {
 				
 				Scanner sc = new Scanner(System.in);
@@ -36,7 +42,7 @@ public class Client {
 						sc.close();
 						System.exit(-1);
 					} else if (serverResponse.equals("OK SHUTDOWN")) {
-						System.exit(-1);
+						shutdown = true;
 					}else if (serverResponse.equals("ERROR NO MORE CLIENT POSSIBLE")) {
 						System.exit(-1);
 					}
@@ -46,11 +52,14 @@ public class Client {
 
 			}
 
+		} catch (SocketTimeoutException e) {
+			if (shutdown) {
+				connect2server.close();
+				System.exit(-1);
+			}
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

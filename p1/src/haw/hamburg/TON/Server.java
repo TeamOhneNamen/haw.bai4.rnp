@@ -27,7 +27,7 @@ public class Server {
 	public static void main(String[] args) {
 
 		for (int i = 0; i < maxVerbindungen; i++) {
-			buisThreadList.add(new BusinessThread(null));
+			buisThreadList.add(new BusinessThread(null, buisThreadList));
 		}
 		
 		
@@ -51,7 +51,7 @@ public class Server {
 				
 				if (freeThread!=-1) {
 					
-					BusinessThread tempClient = new BusinessThread(client);
+					BusinessThread tempClient = new BusinessThread(client, buisThreadList);
 					
 					//startet einen behandelnden Thread
 					buisThreadList.set(freeThread, tempClient) ;

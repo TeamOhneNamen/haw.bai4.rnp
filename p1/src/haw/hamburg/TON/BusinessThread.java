@@ -15,10 +15,12 @@ public class BusinessThread extends Thread {
 	Socket client = null;
 	static String passwort = "1234";
 	ArrayList<String> commands = new ArrayList<String>();
-
-	public BusinessThread(Socket client) {
+	static BusinessThreadList buisThreadList;
+	
+	public BusinessThread(Socket client, BusinessThreadList businessThreadList) {
 		this.client = client;
-
+		this.buisThreadList = buisThreadList;
+		
 		commands.add("UPPERCASE");
 		commands.add("LOWERCASE");
 		commands.add("REVERSE");
@@ -52,6 +54,7 @@ public class BusinessThread extends Thread {
 					}
 
 					switch (command) {
+					//UPPERCASE
 					case 0:
 
 						if (serverResponse.startsWith(commands.get(command) + " ")) {
@@ -69,6 +72,7 @@ public class BusinessThread extends Thread {
 						}
 
 						break;
+					//LOWERCASE
 					case 1:
 
 						if (serverResponse.startsWith(commands.get(command) + " ")) {
@@ -85,6 +89,7 @@ public class BusinessThread extends Thread {
 							}
 						}
 						break;
+					//REVERSE
 					case 2:
 						if (serverResponse.startsWith(commands.get(command) + " ")) {
 							if (serverResponse.length() > commands.get(command).length() + 1) {
@@ -101,7 +106,7 @@ public class BusinessThread extends Thread {
 						}
 
 						break;
-
+					//SHUTDOWN
 					case 3:
 						if (serverResponse.length() > commands.get(command).length() + 1) {
 							commandSHUTDOWN(cutBlank(tempMsg));
@@ -109,7 +114,7 @@ public class BusinessThread extends Thread {
 							sendErrorNoArgs("PASSWORD IS MISSING");
 						}
 						break;
-
+					//BYE
 					case 4:
 						if (serverResponse.equals("BYE")) {
 							commandBYE(client);
@@ -148,7 +153,8 @@ public class BusinessThread extends Thread {
 		if (serverResponse.equals(passwort)) {
 			sendOkay("SHUTDOWN");
 			printOut("Server wird gesoppt.");
-			System.exit(-1);
+			buisThreadList.sendAllShutdwn();
+//			System.exit(-1);
 		} else {
 			sendError("Passwort stimmt nicht!");
 		}
@@ -173,7 +179,7 @@ public class BusinessThread extends Thread {
 	private void commandUPPERCASE(String serverResponse) throws IOException {
 		sendOkay(serverResponse.toUpperCase());
 	}
-
+	
 	private void sendErrorNoArgs() throws IOException {
 		sendError("SYNTAX ERROR NO ARGUMENT FOUND");
 	}
@@ -208,5 +214,9 @@ public class BusinessThread extends Thread {
 
 	private void printOut(String msg) {
 		System.out.println("[SERVER] \"" + msg + "\"");
+	}
+
+	public Socket getClient() {
+		return client;
 	}
 }
