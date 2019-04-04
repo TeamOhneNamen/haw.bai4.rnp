@@ -10,54 +10,56 @@ import java.nio.charset.StandardCharsets;
 public class Server {
 
 	
+	public static boolean shutdowned = false;
+	
 	// port festlegen
 	
 	static ServerSocket sServer;
-	static int verbindungen;
-	static int maxVerbindungen = 3;
-	static int port = 25615;
+	private final static int MAXVERBUNDUNGEN = 3;
+	private final static int PORT = 25615;
 	
 	static BusinessThreadList buisThreadList = new BusinessThreadList();
 	
 	//Constructor 
 	public Server() {
-		port = 25615;
 	}
 	
 	public static void main(String[] args) {
 
-		for (int i = 0; i < maxVerbindungen; i++) {
-			buisThreadList.add(new BusinessThread(null, buisThreadList));
+		for (int i = 0; i < MAXVERBUNDUNGEN; i++) {
+			buisThreadList.add(new BusinessThread(null));
 		}
 		
 		
 		// versuche den Server auf dem port zu starten
 		try {
-			sServer = new ServerSocket(port);
-			printOut("Server wurde auf Port " + port + " gestartet!");
+			sServer = new ServerSocket(PORT);
+			printOut("Server wurde auf Port " + PORT + " gestartet!");
 		} catch (IOException e) {
-			printOut("error to bind Port: " +port);
+			printOut("error to bind Port: " +PORT);
 			System.exit(-1);
 		}
 		
 		// warte auf eingehende VErbindungen
-		while (true) {
+		while (!shutdowned) {
 			
 			try {
 				
 				//blockiert bis neue Verbindung eintrifft
-				Socket client = sServer.accept();
+				Socket client = sServer.accept(); // fehler
+				
 				int freeThread = buisThreadList.getFree();
+				
 				
 				if (freeThread!=-1) {
 					
-					BusinessThread tempClient = new BusinessThread(client, buisThreadList);
+					BusinessThread tempClient = new BusinessThread(client);
 					
 					//startet einen behandelnden Thread
 					buisThreadList.set(freeThread, tempClient) ;
 					tempClient.start();
 
-					//sende Clienten bestätigung über die Verbindung
+					//sende Clienten bestï¿½tigung Ã¼ber die Verbindung
 					sendOkay("Verbindung zu " + sServer.getInetAddress().getHostAddress() + ":" + sServer.getLocalPort() + " hergestellt!", client);
 
 					
@@ -67,7 +69,7 @@ public class Server {
 					
 				}else {
 					
-					//sende Clienten Fehler über die Verbindung
+					//sende Clienten Fehler ï¿½ber die Verbindung
 					sendError("NO MORE CLIENT POSSIBLE", client);
 					client.close();
 					
@@ -81,7 +83,14 @@ public class Server {
 			}
 
 		}
+		buisThreadList.joinAll();
 
+	}
+	
+	public static void close() throws IOException {
+		shutdowned = true;
+		printOut("Server wird gestoppt.");
+		sServer.close();
 	}
 	
 	private static void sendError(String msg, Socket client) throws IOException {

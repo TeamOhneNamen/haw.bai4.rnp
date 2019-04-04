@@ -1,9 +1,6 @@
 package haw.hamburg.TON;
 
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class BusinessThreadList extends ArrayList<BusinessThread> {
@@ -32,13 +29,30 @@ public class BusinessThreadList extends ArrayList<BusinessThread> {
 		return ammound;
 		
 	}
+
+
 	
-	public void sendAllShutdwn() throws IOException {
+	public void joinAll() {
 		for (int i = 0; i < this.size(); i++) {
-			if (this.get(i)!=null) {
-				PrintWriter out = new PrintWriter(new OutputStreamWriter(this.get(i).getClient().getOutputStream(), StandardCharsets.UTF_8), true);
-				out.println("OK SHUTDOWN");
+			if (this.get(i).getClient() != null) {
+				try {
+					this.get(i).join();
+					System.out.println("Thread " + i + " wurde beendet!");
+				} catch (InterruptedException e) {
+					this.get(i).interrupt();
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	public void shutdownAll() throws IOException {
+		for (int i = 0; i < this.size(); i++) {
+			if (this.get(i).getClient() != null) {
+
+				System.out.println(i);
 				
+				this.get(i).sendOkay("SHUTDOWN");
 			}
 		}
 	}
