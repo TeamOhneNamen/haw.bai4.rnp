@@ -7,13 +7,12 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.ConnectException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 public class Client {
-
-	public static Scanner sc = new Scanner(System.in);
 	
 	private static final int MAXBIT = 255;
 	private static final int MINBIT = 0;
@@ -26,20 +25,27 @@ public class Client {
 		try {
 			connect2server = new Socket(IP, PORT);
 			
-			BufferedReader in = new BufferedReader(new InputStreamReader(connect2server.getInputStream(), "UTF-8"));
-			String serverResponse = in.readLine();
+			BufferedReader readFromConsol = new BufferedReader(new InputStreamReader(System.in));
+			
+			
+			BufferedReader serverInput = new BufferedReader(new InputStreamReader(connect2server.getInputStream(), "UTF-8"));
+			String serverResponse = serverInput.readLine();
 			System.out.println(serverResponse);
 			
 			while (true) {
 				
-				while (!sc.hasNext()) {
-					
-					if (Server.shutdowned) {
-						System.exit(-1);
+				
+				while (!readFromConsol.ready()) {
+					if (serverInput.ready()) {
+						serverResponse = serverInput.readLine();
+						if (serverResponse.equals("OK SHUTDOWN")) {
+							System.out.println("SERVER SHUTDOWNED!");
+							System.exit(-1);
+						}
 					}
 					
 				}
-				String befehl = sc.nextLine(); // fehler
+				String befehl = readFromConsol.readLine();
 				
 
 				if (befehl.getBytes().length < MAXBIT) {
@@ -48,10 +54,10 @@ public class Client {
 						out.println(befehl);
 					
 						
-						serverResponse = in.readLine();
+						serverResponse = serverInput.readLine();
 						System.out.println(serverResponse);
 						if (serverResponse.equals("OK BYE")) {
-							sc.close();
+							readFromConsol.close();
 							System.exit(-1);
 						} else if (serverResponse.equals("OK SHUTDOWN")) {
 							System.exit(-1);
@@ -67,17 +73,13 @@ public class Client {
 
 			}
 
-		} catch (ConnectException e) {
-			
+		} catch (SocketException e) {
+			System.out.println("OK VERBINDUNG GESCHLOSSEN");
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-	
-	public void closeScanner() {
-		sc.close();
 	}
 	
 }
