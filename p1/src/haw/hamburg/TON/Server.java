@@ -84,13 +84,15 @@ public class Server {
 
 		}
 		buisThreadList.joinAll();
+		printOut("Server wurde gestoppt.");
 
 	}
 	
 	public static void close() throws IOException {
 		shutdowned = true;
-		printOut("Server wird gestoppt.");
+		//verhindert weiteres verbinden auf den Server
 		sServer.close();
+		printOut("Server wird gestoppt.");
 	}
 	
 	private static void sendError(String msg, Socket client) throws IOException {

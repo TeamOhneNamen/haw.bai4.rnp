@@ -49,9 +49,6 @@ public class BusinessThreadList extends ArrayList<BusinessThread> {
 	public void shutdownAll() throws IOException {
 		for (int i = 0; i < this.size(); i++) {
 			if (this.get(i).getClient() != null) {
-
-				System.out.println(i);
-				
 				this.get(i).sendOkay("SHUTDOWN");
 			}
 		}

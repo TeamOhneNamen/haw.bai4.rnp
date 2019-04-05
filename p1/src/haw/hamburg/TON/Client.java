@@ -5,12 +5,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.net.ConnectException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
-import java.util.Scanner;
 
 public class Client {
 	
@@ -39,7 +37,7 @@ public class Client {
 					if (serverInput.ready()) {
 						serverResponse = serverInput.readLine();
 						if (serverResponse.equals("OK SHUTDOWN")) {
-							System.out.println("SERVER SHUTDOWNED!");
+							System.out.println(serverResponse);
 							System.exit(-1);
 						}
 					}

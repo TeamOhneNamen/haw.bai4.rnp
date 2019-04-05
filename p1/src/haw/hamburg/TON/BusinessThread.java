@@ -63,7 +63,9 @@ public class BusinessThread extends Thread {
 
 							if (serverResponse.startsWith(commands.get(command) + " ")) {
 								if (serverResponse.length() > commands.get(command).length() + 1) {
-									commandUPPERCASE(cutBlank(tempMsg));
+									if (!cutBlank(tempMsg).toUpperCase().equals("SHUTDOWN")) {
+										commandUPPERCASE(cutBlank(tempMsg));	
+									}
 								} else {
 									sendErrorNoArgs();
 								}
@@ -97,7 +99,9 @@ public class BusinessThread extends Thread {
 						case 2:
 							if (serverResponse.startsWith(commands.get(command) + " ")) {
 								if (serverResponse.length() > commands.get(command).length() + 1) {
-									commandREVERSE(cutBlank(tempMsg));
+									if (!cutBlank(tempMsg).equals("NWODTUHS")) {
+										commandREVERSE(cutBlank(tempMsg));	
+									}
 								} else {
 									sendErrorNoArgs();
 								}
@@ -140,10 +144,10 @@ public class BusinessThread extends Thread {
 					
 				} catch (SocketTimeoutException e) {
 					if (Server.shutdowned) {
-						System.out.println("TIMEDOUT");
 						try {
+							sendOkay("SHUTDOWN");
 							Server.sServer.close();
-							Server.buisThreadList.shutdownAll();
+							client.close();
 						} catch (IOException e1) {
 							// TODO Auto-generated catch block
 							e1.printStackTrace();
@@ -184,7 +188,6 @@ public class BusinessThread extends Thread {
 	private void commandSHUTDOWN(String serverResponse) throws IOException {
 		if (serverResponse.equals(passwort)) {
 			Server.close();
-//			System.exit(-1);
 		} else {
 			sendError("Passwort stimmt nicht!");
 		}
