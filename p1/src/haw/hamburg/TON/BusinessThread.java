@@ -17,10 +17,10 @@ public class BusinessThread extends Thread {
 	Socket client = null;
 	static String passwort = "1234";
 	ArrayList<String> commands = new ArrayList<String>();
-	
+
 	public BusinessThread(Socket client) {
 		this.client = client;
-		
+
 		commands.add("UPPERCASE");
 		commands.add("LOWERCASE");
 		commands.add("REVERSE");
@@ -35,13 +35,13 @@ public class BusinessThread extends Thread {
 			while (clientAlive) {
 				BufferedReader in;
 				try {
-					
+
 					client.setSoTimeout(30000);
-					
+
 					in = new BufferedReader(new InputStreamReader(client.getInputStream(), "UTF-8"));
 
 					String serverResponse = in.readLine();
-				
+
 					if (serverResponse.getBytes().length <= 255) {
 						int command = -1;
 						String tempMsg = "";
@@ -58,13 +58,13 @@ public class BusinessThread extends Thread {
 						}
 
 						switch (command) {
-						//UPPERCASE
+						// UPPERCASE
 						case 0:
 
 							if (serverResponse.startsWith(commands.get(command) + " ")) {
 								if (serverResponse.length() > commands.get(command).length() + 1) {
 									if (!cutBlank(tempMsg).toUpperCase().equals("SHUTDOWN")) {
-										commandUPPERCASE(cutBlank(tempMsg));	
+										commandUPPERCASE(cutBlank(tempMsg));
 									}
 								} else {
 									sendErrorNoArgs();
@@ -78,7 +78,7 @@ public class BusinessThread extends Thread {
 							}
 
 							break;
-						//LOWERCASE
+						// LOWERCASE
 						case 1:
 
 							if (serverResponse.startsWith(commands.get(command) + " ")) {
@@ -95,12 +95,12 @@ public class BusinessThread extends Thread {
 								}
 							}
 							break;
-						//REVERSE
+						// REVERSE
 						case 2:
 							if (serverResponse.startsWith(commands.get(command) + " ")) {
 								if (serverResponse.length() > commands.get(command).length() + 1) {
 									if (!cutBlank(tempMsg).equals("NWODTUHS")) {
-										commandREVERSE(cutBlank(tempMsg));	
+										commandREVERSE(cutBlank(tempMsg));
 									}
 								} else {
 									sendErrorNoArgs();
@@ -114,15 +114,15 @@ public class BusinessThread extends Thread {
 							}
 
 							break;
-						//SHUTDOWN
+						// SHUTDOWN
 						case 3:
 							if (serverResponse.length() > commands.get(command).length() + 1) {
 								commandSHUTDOWN(cutBlank(tempMsg));
-							}else {
+							} else {
 								sendErrorNoArgs("PASSWORD IS MISSING");
 							}
 							break;
-						//BYE
+						// BYE
 						case 4:
 							if (serverResponse.equals("BYE")) {
 								commandBYE(client);
@@ -140,8 +140,8 @@ public class BusinessThread extends Thread {
 
 					} else {
 						sendError("STRING TOO LONG");
-					}				
-					
+					}
+
 				} catch (SocketTimeoutException e) {
 					if (Server.shutdowned) {
 						try {
@@ -149,38 +149,45 @@ public class BusinessThread extends Thread {
 							Server.sServer.close();
 							client.close();
 						} catch (IOException e1) {
-							// TODO Auto-generated catch block
 							e1.printStackTrace();
 						}
-						
+
 						clientAlive = false;
 					}
 
+				} catch (OutOfMemoryError e) {
+
+					Server.printOut("MESSAGE TOO LONG [client]");
+					Server.printOut(e.getLocalizedMessage());
+					clientAlive = false;
+
 				} catch (NullPointerException e) {
-					
+
 					Thread.currentThread().interrupt();
 					printOut("CONNECTION LOST");
 					clientAlive = false;
 
 				} catch (IOException e) {
-					
+
 					printOut("CONNECTION LOST");
 					clientAlive = false;
 
+				} catch (Exception e) {
+					printOut("ERROR: " + e);
 				}
 
 			}
-		}else {
+		} else {
 			try {
 				client.close();
+				clientAlive = false;
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-		
 
 	}
-	
+
 	private String cutBlank(String msg) {
 		return msg.substring(1);
 	}
@@ -212,7 +219,7 @@ public class BusinessThread extends Thread {
 	private void commandUPPERCASE(String serverResponse) throws IOException {
 		sendOkay(serverResponse.toUpperCase());
 	}
-	
+
 	public void sendErrorNoArgs() throws IOException {
 		sendError("SYNTAX ERROR NO ARGUMENT FOUND");
 	}
@@ -220,7 +227,7 @@ public class BusinessThread extends Thread {
 	public void sendErrorNoArgs(String string) throws IOException {
 		sendError("SYNTAX ERROR " + string);
 	}
-	
+
 	public void sendErrorUnknwnCom() throws IOException {
 		sendError("UNKNOWN COMMAND");
 	}
@@ -229,14 +236,15 @@ public class BusinessThread extends Thread {
 		String output = "ERROR " + msg;
 		send(output);
 	}
-	
+
 	public void sendOkay(String msg) throws IOException {
 		String output = "OK " + msg;
 		send(output);
 	}
-	
+
 	public void send(String output) throws IOException {
-		PrintWriter out = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8), true);
+		PrintWriter out = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8),
+				true);
 		if (output.getBytes().length < 255) {
 			out.println(output);
 		} else {

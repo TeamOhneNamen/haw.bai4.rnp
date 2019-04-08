@@ -115,7 +115,7 @@ public class Server {
 
 	}
 	
-	private static void printOut(String msg) {
+	public static void printOut(String msg) {
 		System.out.println("[SERVER] \"" + msg + "\"");
 	}
 	
