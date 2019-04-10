@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class BusinessThread extends Thread {
-
+	
 	boolean shutdowned = false;
 	public boolean clientAlive = false;
 	Socket client = null;
@@ -21,6 +21,7 @@ public class BusinessThread extends Thread {
 	public BusinessThread(Socket client) {
 		this.client = client;
 
+		// hinzufügen aller Commands
 		commands.add("UPPERCASE");
 		commands.add("LOWERCASE");
 		commands.add("REVERSE");
@@ -30,118 +31,128 @@ public class BusinessThread extends Thread {
 
 	@Override
 	public void run() {
+		// solange der Server status nicht "shutdowned" ist arbeite!
 		if (!Server.shutdowned) {
 			clientAlive = true;
 			while (clientAlive) {
 				BufferedReader in;
 				try {
 
-					client.setSoTimeout(30000);
-
 					in = new BufferedReader(new InputStreamReader(client.getInputStream(), "UTF-8"));
 
 					String serverResponse = in.readLine();
-
+					
+					// laenge der nachricht
 					if (serverResponse.getBytes().length <= 255) {
-						int command = -1;
-						String tempMsg = "";
+						if (serverResponse.getBytes().length > 0) {
+							
+							// default no msg found
+							int command = -1;
+							String tempMsg = "";
 
-						for (int i = 0; i < commands.size(); i++) {
-							if (commands.get(i).length() <= serverResponse.length()) {
-								if (serverResponse.startsWith(commands.get(i))) {
-									tempMsg = serverResponse.substring(commands.get(i).length());
-									command = i;
-									break;
+							// finde den Command
+							for (int i = 0; i < commands.size(); i++) {
+								if (commands.get(i).length() <= serverResponse.length()) {
+									if (serverResponse.startsWith(commands.get(i))) {
+										tempMsg = serverResponse.substring(commands.get(i).length());
+										command = i;
+										break;
+									}
 								}
+
 							}
 
-						}
+							switch (command) {
+							// UPPERCASE
+							case 0:
 
-						switch (command) {
-						// UPPERCASE
-						case 0:
-
-							if (serverResponse.startsWith(commands.get(command) + " ")) {
-								if (serverResponse.length() > commands.get(command).length() + 1) {
-									if (!cutBlank(tempMsg).toUpperCase().equals("SHUTDOWN")) {
-										commandUPPERCASE(cutBlank(tempMsg));
+								if (serverResponse.startsWith(commands.get(command) + " ")) {
+									if (serverResponse.length() > commands.get(command).length() + 1) {
+										if (!cutBlank(tempMsg).toUpperCase().equals("SHUTDOWN")) {
+											commandUPPERCASE(cutBlank(tempMsg));
+										}
+									} else {
+										sendErrorNoArgs();
 									}
 								} else {
-									sendErrorNoArgs();
+									if (serverResponse.length() == commands.get(command).length()) {
+										sendErrorNoArgs();
+									} else {
+										sendErrorUnknwnCom();
+									}
 								}
-							} else {
-								if (serverResponse.length() == commands.get(command).length()) {
-									sendErrorNoArgs();
-								} else {
-									sendErrorUnknwnCom();
-								}
-							}
 
-							break;
-						// LOWERCASE
-						case 1:
+								break;
+							// LOWERCASE
+							case 1:
 
-							if (serverResponse.startsWith(commands.get(command) + " ")) {
-								if (serverResponse.length() > commands.get(command).length() + 1) {
-									commandLOWERCASE(cutBlank(tempMsg));
-								} else {
-									sendErrorNoArgs();
-								}
-							} else {
-								if (serverResponse.length() == commands.get(command).length()) {
-									sendErrorNoArgs();
-								} else {
-									sendErrorUnknwnCom();
-								}
-							}
-							break;
-						// REVERSE
-						case 2:
-							if (serverResponse.startsWith(commands.get(command) + " ")) {
-								if (serverResponse.length() > commands.get(command).length() + 1) {
-									if (!cutBlank(tempMsg).equals("NWODTUHS")) {
-										commandREVERSE(cutBlank(tempMsg));
+								if (serverResponse.startsWith(commands.get(command) + " ")) {
+									if (serverResponse.length() > commands.get(command).length() + 1) {
+										commandLOWERCASE(cutBlank(tempMsg));
+									} else {
+										sendErrorNoArgs();
 									}
 								} else {
-									sendErrorNoArgs();
+									if (serverResponse.length() == commands.get(command).length()) {
+										sendErrorNoArgs();
+									} else {
+										sendErrorUnknwnCom();
+									}
 								}
-							} else {
-								if (serverResponse.length() == commands.get(command).length()) {
-									sendErrorNoArgs();
+								break;
+							// REVERSE
+							case 2:
+								if (serverResponse.startsWith(commands.get(command) + " ")) {
+									if (serverResponse.length() > commands.get(command).length() + 1) {
+										if (!cutBlank(tempMsg).equals("NWODTUHS")) {
+											commandREVERSE(cutBlank(tempMsg));
+										}
+									} else {
+										sendErrorNoArgs();
+									}
 								} else {
-									sendErrorUnknwnCom();
+									if (serverResponse.length() == commands.get(command).length()) {
+										sendErrorNoArgs();
+									} else {
+										sendErrorUnknwnCom();
+									}
 								}
-							}
 
-							break;
-						// SHUTDOWN
-						case 3:
-							if (serverResponse.length() > commands.get(command).length() + 1) {
-								commandSHUTDOWN(cutBlank(tempMsg));
-							} else {
-								sendErrorNoArgs("PASSWORD IS MISSING");
-							}
-							break;
-						// BYE
-						case 4:
-							if (serverResponse.equals("BYE")) {
-								commandBYE(client);
-							} else {
-								sendError("NO ARGUMENT EXCEPTED");
-							}
-							break;
+								break;
+							// SHUTDOWN
+							case 3:
+								if (serverResponse.length() > commands.get(command).length() + 1) {
+									commandSHUTDOWN(cutBlank(tempMsg));
+								} else {
+									sendErrorNoArgs("PASSWORD IS MISSING");
+								}
+								break;
+							// BYE
+							case 4:
+								if (serverResponse.equals("BYE")) {
+									commandBYE(client);
+								} else {
+									sendError("NO ARGUMENT EXCEPTED");
+								}
+								break;
 
-						case -1:
-							sendErrorUnknwnCom();
-							break;
-						default:
-							break;
+							// kein Command erkannt
+							case -1:
+								sendErrorUnknwnCom();
+								break;
+							default:
+								break;
+							}
+						} else {
+							sendError("STRING TOO SHORT");
 						}
-
 					} else {
 						sendError("STRING TOO LONG");
 					}
 
+					// -------------------------------------- EXCEPTIONS
+					// -------------------------------------
+					// Kommt nach X Sekunden Keine Nachricht mehr:
 				} catch (SocketTimeoutException e) {
 					if (Server.shutdowned) {
 						try {
@@ -155,6 +166,7 @@ public class BusinessThread extends Thread {
 						clientAlive = false;
 					}
 
+					// Nachricht vom Reader zu lang
 				} catch (OutOfMemoryError e) {
 
 					Server.printOut("MESSAGE TOO LONG [client]");
@@ -188,38 +200,55 @@ public class BusinessThread extends Thread {
 
 	}
 
+	// getter Client
+	public Socket getClient() {
+		return client;
+	}
+
+	// schneidet das Blanc nach nach dem Command ab
 	private String cutBlank(String msg) {
 		return msg.substring(1);
 	}
 
+	// ------------------ METHODEN FUER COMMANDS -----------------------
+
+	// commandSHUTDOWN
 	private void commandSHUTDOWN(String serverResponse) throws IOException {
 		if (serverResponse.equals(passwort)) {
+			sendOkay("Server IS SHUTDOWNING");
 			Server.close();
 		} else {
-			sendError("Passwort stimmt nicht!");
+			sendError("NOT THE RIGHT PASSWORD");
 		}
 	}
 
+	// commandBYE
 	private void commandBYE(Socket client) throws IOException {
 		sendOkay("BYE");
 		client.close();
 	}
 
+	// commandREVERSE
 	private void commandREVERSE(String serverResponse) throws IOException {
+		// dreht nachricht um und sendet an en Client
 		StringBuilder input1 = new StringBuilder();
 		input1.append(serverResponse);
 		input1 = input1.reverse();
 		sendOkay(input1.toString());
 	}
 
+	// commandLOWERCASE
 	private void commandLOWERCASE(String serverResponse) throws IOException {
 		sendOkay(serverResponse.toLowerCase());
 	}
 
+	// commandUPPERCASE
 	private void commandUPPERCASE(String serverResponse) throws IOException {
 		sendOkay(serverResponse.toUpperCase());
 	}
 
+	// ------------------ AUSGABEN -----------------------
+	// ERRORS
 	public void sendErrorNoArgs() throws IOException {
 		sendError("SYNTAX ERROR NO ARGUMENT FOUND");
 	}
@@ -237,16 +266,22 @@ public class BusinessThread extends Thread {
 		send(output);
 	}
 
+	// OK's
 	public void sendOkay(String msg) throws IOException {
 		String output = "OK " + msg;
 		send(output);
 	}
 
+	// send to client
 	public void send(String output) throws IOException {
 		PrintWriter out = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8),
 				true);
 		if (output.getBytes().length < 255) {
-			out.println(output);
+			if (output.getBytes().length > 0) {
+				out.println(output);
+			} else {
+				out.println("ERROR STRING TOO SHORT");
+			}
 		} else {
 			out.println("ERROR STRING TOO LONG");
 		}
@@ -254,10 +289,6 @@ public class BusinessThread extends Thread {
 	}
 
 	public void printOut(String msg) {
-		System.out.println("[SERVER] \"" + msg + "\"");
-	}
-
-	public Socket getClient() {
-		return client;
+		Server.printOut(msg);
 	}
 }
