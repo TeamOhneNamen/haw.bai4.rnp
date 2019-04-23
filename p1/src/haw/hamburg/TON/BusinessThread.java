@@ -3,8 +3,10 @@ package haw.hamburg.TON;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
@@ -17,8 +19,10 @@ public class BusinessThread extends Thread {
 	Socket client = null;
 	static String passwort = "1234";
 	ArrayList<String> commands = new ArrayList<String>();
+	BufferedReader in;
+	PrintWriter out;
 
-	public BusinessThread(Socket client) {
+	public BusinessThread(Socket client) throws UnsupportedEncodingException, IOException {
 		this.client = client;
 
 		commands.add("UPPERCASE");
@@ -26,6 +30,7 @@ public class BusinessThread extends Thread {
 		commands.add("REVERSE");
 		commands.add("SHUTDOWN");
 		commands.add("BYE");
+		
 	}
 
 	@Override
@@ -33,15 +38,14 @@ public class BusinessThread extends Thread {
 		if (!Server.shutdowned) {
 			clientAlive = true;
 			while (clientAlive) {
-				BufferedReader in;
 				try {
-
+					in = new BufferedReader(new InputStreamReader(client.getInputStream(), StandardCharsets.UTF_8), 1000);
+					out = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8), true);
 					client.setSoTimeout(30000);
 
-					in = new BufferedReader(new InputStreamReader(client.getInputStream(), "UTF-8"));
-
+					
 					String serverResponse = in.readLine();
-
+					Server.printOut(serverResponse);
 					if (serverResponse.getBytes().length <= 255) {
 						int command = -1;
 						String tempMsg = "";
@@ -174,12 +178,15 @@ public class BusinessThread extends Thread {
 
 				} catch (Exception e) {
 					printOut("ERROR: " + e);
+				} finally {
+					
 				}
 
 			}
 		} else {
 			try {
 				client.close();
+				in.close();
 				clientAlive = false;
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -243,8 +250,7 @@ public class BusinessThread extends Thread {
 	}
 
 	public void send(String output) throws IOException {
-		PrintWriter out = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8),
-				true);
+		
 		if (output.getBytes().length < 255) {
 			out.println(output);
 		} else {

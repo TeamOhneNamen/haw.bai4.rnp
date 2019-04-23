@@ -3,6 +3,7 @@ package haw.hamburg.TON;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -18,13 +19,15 @@ public class Server {
 	private final static int MAXVERBUNDUNGEN = 3;
 	private final static int PORT = 25615;
 	
+	static PrintWriter out;
+	
 	static BusinessThreadList buisThreadList = new BusinessThreadList();
 	
 	//Constructor 
 	public Server() {
 	}
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws UnsupportedEncodingException, IOException {
 
 		for (int i = 0; i < MAXVERBUNDUNGEN; i++) {
 			buisThreadList.add(new BusinessThread(null));
@@ -106,7 +109,7 @@ public class Server {
 	}
 	
 	private static void send(String output, Socket client) throws IOException {
-		PrintWriter out = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8), true);
+		out = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8), true);
 		if (output.getBytes().length < 255) {
 			out.println(output);
 		} else {
