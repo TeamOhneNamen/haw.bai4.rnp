@@ -3,6 +3,7 @@ package haw.hamburg.TON;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -26,7 +27,7 @@ public class Server {
 	public Server() {
 	}
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws UnsupportedEncodingException, IOException {
 
 		// füge in die BTL so viele leere BusinessThreads(BT) ein, wie es verbindungen geben soll
 		for (int i = 0; i < MAXVERBUNDUNGEN; i++) {
@@ -118,7 +119,7 @@ public class Server {
 	
 	//send an Client
 	private static void send(String output, Socket client) throws IOException {
-		PrintWriter out = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8), true);
+		out = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8), true);
 		if (output.getBytes().length < 255) {
 			out.println(output);
 		} else {
