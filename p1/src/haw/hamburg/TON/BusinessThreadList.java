@@ -7,6 +7,9 @@ public class BusinessThreadList extends ArrayList<BusinessThread> {
 	
 	private static final long serialVersionUID = 1L;
 
+
+	// liefert den index der connection in der "BusinessThreadList"(BTL),
+	// die noch frei ist | wenn keine dann -1
 	public int getFree() {
 		
 		for (int i = 0; i < this.size(); i++) {
@@ -17,7 +20,8 @@ public class BusinessThreadList extends ArrayList<BusinessThread> {
 		return -1;
 		
 	}
-
+	
+	// wieviele Connecrions hat der Server noch offen?
 	public int manyConnections() {
 		int ammound = 0;
 		for (int i = 0; i < this.size(); i++) {
@@ -31,7 +35,7 @@ public class BusinessThreadList extends ArrayList<BusinessThread> {
 	}
 
 
-	
+	// wartet auf alle "BusinessThreads"(BT) in der BTL bis diese beendet sind
 	public void joinAll() {
 		for (int i = 0; i < this.size(); i++) {
 			if (this.get(i).getClient() != null) {
@@ -46,6 +50,7 @@ public class BusinessThreadList extends ArrayList<BusinessThread> {
 		}
 	}
 
+	//sendet an alle Clineten, die mit dem Server Verbunden sind "OK SHUTDOWN"
 	public void shutdownAll() throws IOException {
 		for (int i = 0; i < this.size(); i++) {
 			if (this.get(i).getClient() != null) {
@@ -53,5 +58,15 @@ public class BusinessThreadList extends ArrayList<BusinessThread> {
 			}
 		}
 	}
+
+	// gebe allen Clineten, die mit dem Server Verbunden sind einen SoTimeout
+	public void setAllSoTimeout(int timeout) throws IOException {
+		for (int i = 0; i < this.size(); i++) {
+			if (this.get(i).getClient() != null) {
+				this.get(i).getClient().setSoTimeout(timeout);
+			}
+		}
+	}
+	
 	
 }

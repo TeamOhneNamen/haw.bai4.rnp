@@ -19,38 +19,26 @@ public class Client {
 	
 	public static void main(String[] args) throws IOException {
 		
+		
 		Socket connect2server = null;
 		try {
+			
+			// Stelle eine verbindung zum Server her
 			connect2server = new Socket(IP, PORT);
-			
-			BufferedReader readFromConsol = new BufferedReader(new InputStreamReader(System.in));
-			
-			
+
+			// lese aus BufferedReader die nachricht vom Server(Begrüßung)
 			BufferedReader serverInput = new BufferedReader(new InputStreamReader(connect2server.getInputStream(), "UTF-8"));
 			String serverResponse = serverInput.readLine();
 			System.out.println(serverResponse);
 			
+			BufferedReader readFromConsol = new BufferedReader(new InputStreamReader(System.in));
+			
 			while (true) {
 				
-				
+				//bis die Konsolennachrich ferig ist(/n(Enter)) auf den Server hören 
 				while (!readFromConsol.ready()) {
+					// auf den Server hören
 					if (serverInput.ready()) {
-						serverResponse = serverInput.readLine();
-						if (serverResponse.equals("OK SHUTDOWN")) {
-							System.out.println(serverResponse);
-							System.exit(-1);
-						}
-					}
-					
-				}
-				String befehl = readFromConsol.readLine();
-				
-
-				if (befehl.getBytes().length < MAXBIT) {
-					if (befehl.getBytes().length > MINBIT) {
-						PrintWriter out = new PrintWriter(new OutputStreamWriter(connect2server.getOutputStream(), StandardCharsets.UTF_8), true);
-						out.println(befehl);
-					
 						
 						serverResponse = serverInput.readLine();
 						System.out.println(serverResponse);
@@ -62,6 +50,20 @@ public class Client {
 						}else if (serverResponse.equals("ERROR NO MORE CLIENT POSSIBLE")) {
 							System.exit(-1);
 						}
+					}
+					
+				}
+				//von Console lesen
+				String befehl = readFromConsol.readLine();
+				
+				//HAT DIE NACHRICHT DIE RICHTIGE LÄNGE?
+				if (befehl.getBytes().length < MAXBIT) {
+					if (befehl.getBytes().length > MINBIT) {
+						
+						//Sende nachricht an server (UTF_8 codiert)
+						PrintWriter out = new PrintWriter(new OutputStreamWriter(connect2server.getOutputStream(), StandardCharsets.UTF_8), true);
+						out.println(befehl);
+					
 					} else {
 						System.out.println("ERROR STRING TOO SHORT");
 					}
