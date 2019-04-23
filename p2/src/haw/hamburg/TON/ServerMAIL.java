@@ -8,7 +8,6 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.Random;
 
 public class ServerMAIL {
 	
@@ -19,7 +18,6 @@ public class ServerMAIL {
 	public static void main(String[] args) {
 		alive = true;
 		ServerSocket ss;
-		int mailNR = 0;
 		try {
 			ss = new ServerSocket(12345);
 			System.out.println("[SERVER] gestartet auf: 12345");
@@ -32,8 +30,8 @@ public class ServerMAIL {
 				System.out.println("[SERVER] warte auf antwort!");
 				String input = in.readLine();
 				System.out.println("[SERVER] mach was mit:" + input);
-				 if(input.startsWith("STAT")){
-						out.println("+OK 6 345");
+				if(input.startsWith("STAT")){
+						out.println("+OK 5 345");
 				} else if (input.startsWith("USER")) {
 					out.println("+OK Der User exestiert");
 				} else if (input.startsWith("PASS")) {
@@ -52,20 +50,55 @@ public class ServerMAIL {
 					out.println("+OK 5 2453");
 				} else if (input.startsWith("RETR 6")) {
 
-					out.println("-ERR ende der nachrichten");
+					out.println("+OK 6 240");
+					out.println("ich binn es");
+					out.println("ich binn es");
+					out.println("ich binn es");
+					out.println("ich binn es");
+					out.println(".");
 				
-				} else if(input.startsWith("DELE 6")){
+				} else if (input.startsWith("RETR 2")) {
 
-					out.println("-ERR ende der nachrichten");
+					out.println("+OK 2 245");
+					out.println("ich binn es");
+					out.println("ich binn es");
+					out.println("ich binn es");
+					out.println("ich binn es");
+					out.println("ich binn es");
+					out.println(".");
+				
+				} else if (input.startsWith("RETR 3")) {
+
+					out.println("+OK 3 223");
+					out.println("ich binn es");
+					out.println("ich binn es");
+					out.println("ich binn es");
+					out.println(".");
+				
+				} else if (input.startsWith("RETR 4")) {
+					
+					out.println("+OK 4 262");
+					out.println("ich binn es");
+					out.println(".");
+				
+				} else if(input.startsWith("RETR 5")){
+
+					out.println("+OK 5 2453");
+					out.println("ich binn es");
+					out.println(".");
 					
 				} else if (input.startsWith("RETR")){
-					Random rand = new Random();
-					mailNR++;
-					out.println("+OK " + mailNR + " " + rand.nextInt(255));
-					out.println(input);
+					out.println("-ERR " + input);
+				} else if (input.startsWith("LIST")){
+					out.println("+OK 5 messages (3423 octets)");
+					out.println("2 245");
+					out.println("3 223");
+					out.println("4 262");
+					out.println("5 2453");
+					out.println("6 240");
 					out.println(".");
 				} else {
-					out.println("+OK " + input);
+					out.println("-ERR " + input);
 				}
 			}
 		

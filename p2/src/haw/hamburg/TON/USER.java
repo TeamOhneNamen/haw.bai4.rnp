@@ -2,6 +2,8 @@ package haw.hamburg.TON;
 
 import java.util.ArrayList;
 
+import haw.hamburg.TON.Exceptions.MailNotExistException;
+
 public class USER {
 
 	private String username;
@@ -62,6 +64,17 @@ public class USER {
 			}
 		}
 		return ammound;
+	}
+	
+	public Mail getMailByNumber(int mailNumber) throws MailNotExistException {
+		for (int i = 0; i < mailingQueue.size(); i++) {
+			if (mailingQueue.get(i).getMailNumber() == mailNumber) {
+
+				return mailingQueue.get(i);
+			}
+		}
+		throw new MailNotExistException();
+		
 	}
 	
 }

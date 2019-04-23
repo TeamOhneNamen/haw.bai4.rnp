@@ -13,7 +13,7 @@ public class Pop3ProxyServer {
 	
 	private static int emailClinetPort = 1300;
 
-	private static int zeitueberschreitung = 30000;
+	private static int zeitueberschreitung = 3000000;
 	
 	
 	public Pop3ProxyServer(int zeitUeberschreitung) {

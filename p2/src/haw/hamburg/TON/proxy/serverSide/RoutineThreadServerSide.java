@@ -12,8 +12,6 @@ import java.util.ArrayList;
 import haw.hamburg.TON.Mail;
 import haw.hamburg.TON.Pop3ProxyServer;
 import haw.hamburg.TON.Exceptions.NoopException;
-import haw.hamburg.TON.Exceptions.NotExistException;
-//import haw.hamburg.TON.Exceptions.NoopException;
 import haw.hamburg.TON.Exceptions.WrongPasswordException;
 import haw.hamburg.TON.Exceptions.WrongUsernameException;
 
@@ -27,6 +25,8 @@ public class RoutineThreadServerSide extends Thread {
 	private PrintWriter out2Server;
 
 	int ammound = 0;
+	
+	int[] mailNumbers;
 	
 	Socket server;
 
@@ -89,35 +89,43 @@ public class RoutineThreadServerSide extends Thread {
 		
 		String ergString[] = sendStat();
 		ammound = Integer.parseInt(ergString[1]);
+		mailNumbers = getWichMails(ammound);
 		
 		send2ProxyConsole("Empfange " + ammound + " mails.");
-		for (int j = 0; j < ammound; j++) {
+		for (int j = 0; j < mailNumbers.length; j++) {
 			
 			/**
 			 * Zerteile die erste Zeile in seine Attribute
 			 */
-			String msg = sendRetr(j);
-			String msgFirstLine = msg.substring(0, msg.indexOf("\n"));
-			String msgFirstLineWithountState = msgFirstLine.substring(msgFirstLine.indexOf(" ")+1, msgFirstLine.length());
-			String numberString = msgFirstLineWithountState.substring(0, msgFirstLineWithountState.indexOf(" "));
+			String msg = sendRetr(mailNumbers[j]);
+			if (isOk(msg)) {
+				String msgFirstLine = msg.substring(0, msg.indexOf("\n"));
+				String msgFirstLineWithountState = msgFirstLine.substring(msgFirstLine.indexOf(" ")+1, msgFirstLine.length());
+				String numberString = msgFirstLineWithountState.substring(0, msgFirstLineWithountState.indexOf(" "));
+				
+				String octetsString = msgFirstLineWithountState.substring(msgFirstLineWithountState.indexOf(" ")+1, msgFirstLineWithountState.length());
+				int number = Integer.valueOf(numberString);
+				int octets = Integer.valueOf(octetsString);
+				
+				// Loesche die erste Zeile von der nachricht
+				msg = msg.substring(msg.indexOf("\n")+1, msg.length());
+				
+				mailList.add(new Mail(msg, octets, number));
+				send2ProxyConsole("Empfange Nachricht: " + number + " von POP3-Server");
+			}else {
+				send2ProxyConsole("Nachricht: " + mailNumbers[j] + " konnte nicht vom POP3-Server gelesen werden");
+			}
 			
-			String octetsString = msgFirstLineWithountState.substring(msgFirstLineWithountState.indexOf(" ")+1, msgFirstLineWithountState.length());
-			int number = Integer.valueOf(numberString);
-			int octets = Integer.valueOf(octetsString);
-			
-			// Loesche die erste Zeile von der nachricht
-			msg = msg.substring(msg.indexOf("\n")+1, msg.length());
-			
-			mailList.add(new Mail(msg, octets, number));
-			send2ProxyConsole("empfange mail: " + (j+1));
 		}
 		
 		send2ProxyConsole("Empfangene Nachrichten:");
 		for (int j = 0; j < mailList.size(); j++) {
-			send2ProxyConsole(" -> \t " + j + ": " + mailList.get(j).getOctets() + " Octets");
+			send2ProxyConsole(" -> \t " + mailNumbers[j] + ": " + mailList.get(j).getOctets() + " Octets");
 		}
 		
 	}
+
+	
 
 	private void loeschung(ArrayList<Mail> mailList) {
 		send2ProxyConsole("Loeschen erfolgreich abgeholter E-Mails");
@@ -126,7 +134,7 @@ public class RoutineThreadServerSide extends Thread {
 		for (int j = 0; j < ammound; j++) {
 
 			sendDele(j);
-			send2ProxyConsole("loesche mail: " + (j+1));
+			send2ProxyConsole("loesche mail: " + mailNumbers[j] + " von POP3-Server");
 		}
 		
 	}
@@ -160,6 +168,20 @@ public class RoutineThreadServerSide extends Thread {
 		}
 	}
 	
+	private int[] getWichMails(int lenght) {
+		int[] listOfNumber = new int[lenght];
+		String list = sendList();
+		if (isOk(list)) {
+			String[] zeilen = list.split("\n");
+			for (int i = 1; i < zeilen.length; i++) {
+				String mailNumberString = zeilen[i].substring(0, zeilen[i].indexOf(" "));
+				int mailNumber = Integer.valueOf(mailNumberString);
+				listOfNumber[i-1] = mailNumber;
+			}
+		}
+		return listOfNumber;
+	}
+	
 	private String[] sendStat() {
 		String[] output = new String[3];
 		String response = "";
@@ -188,10 +210,17 @@ public class RoutineThreadServerSide extends Thread {
 	
 	private String sendList() {
 		String response = "";
+		String temp;
 		try {
 			// send to server "LIST" command
 			sendMSG("LIST");
-			response = receveMSG();
+
+			 temp = receveMSG();
+			do {
+				response += temp + "\n";
+				temp = receveMSG();
+			} while (!temp.equals("."));
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -300,7 +329,6 @@ public class RoutineThreadServerSide extends Thread {
 	}
 
 	private boolean isOk(String input2) {
-		System.out.println(input2);
 		return input2.substring(0, 3).toUpperCase().equals("+OK");
 	}
 

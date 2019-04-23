@@ -12,8 +12,6 @@ import java.nio.charset.StandardCharsets;
 
 public class Client {
 
-	private static final int MAXBIT = 255;
-	private static final int MINBIT = 0;
 	private static final int PORT2 = 1300;
 	private static final String IP = "localhost";
 
