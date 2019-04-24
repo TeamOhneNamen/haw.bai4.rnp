@@ -25,6 +25,8 @@ public class RoutineThreadServerSide extends Thread {
 	private BufferedReader inFromServer;
 	private PrintWriter out2Server;
 
+	String user;
+	
 	int ammound = 0;
 	
 	Socket server;
@@ -45,7 +47,6 @@ public class RoutineThreadServerSide extends Thread {
 		try {
 			Pop3ProxyServerSide.send2ProxyConsole(receveMSG());
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		clientAlive = true;
@@ -63,8 +64,11 @@ public class RoutineThreadServerSide extends Thread {
 				abholung(mailList);
 				Pop3ProxyServerSide.send2ProxyConsole("--------LOESCHEN----------");
 				loeschung(mailList);
+				Pop3ProxyServerSide.send2ProxyConsole("--------ABMELDEN----------");
+				sendQuit();
 				Pop3ProxyServerSide.send2ProxyConsole("----------ENDE------------");
-
+				
+				
 
 //				for (int j = 0; j < mailList.size() ; j++) {
 //					System.out.println(mailList.get(j).getMsg());
@@ -157,9 +161,11 @@ public class RoutineThreadServerSide extends Thread {
 			sendMSG("USER " + username);
 			String response = receveMSG();
 			if (!isOk(response)) {
+				
 				throw new WrongUsernameException();
 			}else {
 				send2ProxyConsole("User: " + username + " ist vorhanden!");
+				user = username;
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -318,16 +324,20 @@ public class RoutineThreadServerSide extends Thread {
 		}
 	}
 	
-	private String sendQuit() throws Exception {
-		String response = "";
-		try {
+	private void sendQuit() {
 			// send to server "LIST" command
-			sendMSG("QUIT");
-			response = receveMSG();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return response;
+			
+			try {
+				sendMSG("QUIT");
+				if(isOk(receveMSG())) {
+					Pop3ProxyClientSide.send2ProxyConsole("User: " + user + " erfolgreich abgemeldet"); 
+				}else {
+					Pop3ProxyClientSide.send2ProxyConsole("Fehler beim abmelden von: " + user); 
+				}
+			} catch (IOException e) {
+				Pop3ProxyClientSide.send2ProxyConsole("Fehler beim abmelden von: " + user); 
+			}
+		
 	}
 
 

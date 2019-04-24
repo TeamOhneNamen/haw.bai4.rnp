@@ -140,6 +140,8 @@ public class ServerMAIL {
 					out.println("4 2453");
 					out.println("5 240");
 					out.println(".");
+				} else if(input.startsWith("QUIT")) {
+					out.println("+OK 5 messages deleted");
 				} else {
 					out.println("-ERR " + input);
 				}

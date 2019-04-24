@@ -10,8 +10,6 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 
-import javax.sound.midi.Receiver;
-
 import haw.hamburg.TON.Mail;
 import haw.hamburg.TON.Pop3ProxyServer;
 import haw.hamburg.TON.USER;
