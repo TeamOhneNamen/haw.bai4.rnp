@@ -11,7 +11,7 @@ import java.util.ArrayList;
 
 import haw.hamburg.TON.Mail;
 import haw.hamburg.TON.Pop3ProxyServer;
-import haw.hamburg.TON.Exceptions.NoopException;
+//import haw.hamburg.TON.Exceptions.NoopException;
 import haw.hamburg.TON.Exceptions.WrongPasswordException;
 import haw.hamburg.TON.Exceptions.WrongUsernameException;
 import haw.hamburg.TON.proxy.clinetSide.Pop3ProxyClientSide;
@@ -118,7 +118,6 @@ public class RoutineThreadServerSide extends Thread {
 			if (isOk(msg)) {
 				String msgFirstLine = msg.substring(0, msg.indexOf("\n"));
 				String msgFirstLineWithountState = msgFirstLine.substring(msgFirstLine.indexOf(" ")+1, msgFirstLine.length());
-				String numberString = msgFirstLineWithountState.substring(0, msgFirstLineWithountState.indexOf(" "));
 				
 				String octetsString = msgFirstLineWithountState.substring(msgFirstLineWithountState.indexOf(" ")+1, msgFirstLineWithountState.length());
 				int octets = Integer.valueOf(octetsString);
@@ -185,19 +184,19 @@ public class RoutineThreadServerSide extends Thread {
 		}
 	}
 	
-	private int[] getWichMails(int lenght) {
-		int[] listOfNumber = new int[lenght];
-		String list = sendList();
-		if (isOk(list)) {
-			String[] zeilen = list.split("\n");
-			for (int i = 1; i < zeilen.length; i++) {
-				String mailNumberString = zeilen[i].substring(0, zeilen[i].indexOf(" "));
-				int mailNumber = Integer.valueOf(mailNumberString);
-				listOfNumber[i-1] = mailNumber;
-			}
-		}
-		return listOfNumber;
-	}
+//	private int[] getWichMails(int lenght) {
+//		int[] listOfNumber = new int[lenght];
+//		String list = sendList();
+//		if (isOk(list)) {
+//			String[] zeilen = list.split("\n");
+//			for (int i = 1; i < zeilen.length; i++) {
+//				String mailNumberString = zeilen[i].substring(0, zeilen[i].indexOf(" "));
+//				int mailNumber = Integer.valueOf(mailNumberString);
+//				listOfNumber[i-1] = mailNumber;
+//			}
+//		}
+//		return listOfNumber;
+//	}
 	
 	private String[] sendStat() {
 		String[] output = new String[3];
@@ -225,52 +224,52 @@ public class RoutineThreadServerSide extends Thread {
 		return output;
 	}
 	
-	private String sendList() {
-		String response = "";
-		String temp;
-		try {
-			// send to server "LIST" command
-			sendMSG("LIST");
-
-			 temp = receveMSG();
-			do {
-				response += temp + "\n";
-				temp = receveMSG();
-			} while (!temp.equals("."));
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return response;
-	}
+//	private String sendList() {
+//		String response = "";
+//		String temp;
+//		try {
+//			// send to server "LIST" command
+//			sendMSG("LIST");
+//
+//			 temp = receveMSG();
+//			do {
+//				response += temp + "\n";
+//				temp = receveMSG();
+//			} while (!temp.equals("."));
+//			
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//		return response;
+//	}
 	
-	private String[] sendList(int place) {
-		String[] output = new String[3];
-		String response = "";
-		try {
-			// send to server "LIST" command
-			sendMSG("LIST " + place);
-			response = receveMSG();
-			if (isOk(response)) {
-				String flag = response.substring(0, response.indexOf(" "));
-				String rest = response.substring(response.indexOf(" ")+1, response.length());
-				String number = rest.substring(0, rest.indexOf(" "));
-				String octets = rest.substring(rest.indexOf(" ")+1, rest.length());
-				
-				output[0] = flag;
-				output[1] = number;
-				output[2] = octets;
-				
-			}else {
-				output[0] = "-ERR";
-				output[1] = "";
-				output[2] = "";
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return output;
-	}
+//	private String[] sendList(int place) {
+//		String[] output = new String[3];
+//		String response = "";
+//		try {
+//			// send to server "LIST" command
+//			sendMSG("LIST " + place);
+//			response = receveMSG();
+//			if (isOk(response)) {
+//				String flag = response.substring(0, response.indexOf(" "));
+//				String rest = response.substring(response.indexOf(" ")+1, response.length());
+//				String number = rest.substring(0, rest.indexOf(" "));
+//				String octets = rest.substring(rest.indexOf(" ")+1, rest.length());
+//				
+//				output[0] = flag;
+//				output[1] = number;
+//				output[2] = octets;
+//				
+//			}else {
+//				output[0] = "-ERR";
+//				output[1] = "";
+//				output[2] = "";
+//			}
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//		return output;
+//	}
 	
 	private String sendRetr(int number) {
 		String response = "";
@@ -310,19 +309,19 @@ public class RoutineThreadServerSide extends Thread {
 		return response;
 	}
 	
-	private void sendNoop() throws NoopException {
-		String response = "";
-		try {
-			// send to server "LIST" command
-			sendMSG("NOOP");
-			response = receveMSG();
-			if (!isOk(response)) {
-				throw new NoopException();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+//	private void sendNoop() throws NoopException {
+//		String response = "";
+//		try {
+//			// send to server "LIST" command
+//			sendMSG("NOOP");
+//			response = receveMSG();
+//			if (!isOk(response)) {
+//				throw new NoopException();
+//			}
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
 	
 	private void sendQuit() {
 			// send to server "LIST" command
