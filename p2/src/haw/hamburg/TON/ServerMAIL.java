@@ -84,9 +84,9 @@ public class ServerMAIL {
 
 				} else if (input.startsWith("RETR 3")) {
 
-					out.println("+OK 3 223");
-					out.println("Date: Mon, 18 Oct 2004 04:11:45 +0200");
-					out.println("From: Someone <someone@example.com>");
+					out.print("+OK 3 223");
+					out.print("Date: Mon, 18 Oct 2004 04:11:45 +0200");
+					out.print("From: Someone <someone@example.com>");
 					out.println("To: wiki@example.com");
 					out.println("Subject: Test-E-Mail");
 					out.println("Content-Type: text/plain; charset=us-ascii; format=flowed");
