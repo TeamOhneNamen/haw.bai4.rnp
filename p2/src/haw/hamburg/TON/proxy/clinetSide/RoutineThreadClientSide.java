@@ -36,11 +36,12 @@ public class RoutineThreadClientSide extends Thread {
 
 	@Override
 	public void run() {
-		
+
 		try {
 			inFromClient = new BufferedReader(new InputStreamReader(client.getInputStream(), StandardCharsets.UTF_8));
-			out2Client = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8), true);
-			
+			out2Client = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8),
+					true);
+
 			client.setSoTimeout(timeout);
 			clientAlive = true;
 			sendMSG("+OK Verbindung hergestellt");
@@ -68,7 +69,7 @@ public class RoutineThreadClientSide extends Thread {
 
 	private boolean anmeldung() throws UnsupportedEncodingException, IOException, WrongUsernameException {
 		Pop3ProxyClientSide.send2ProxyConsole("---------ANMELDEN---------");
-		
+
 		if (getUsername()) {
 			Pop3ProxyClientSide.send2ProxyConsole("anmelden von: " + user.getUsername());
 			Pop3ProxyClientSide.send2ProxyConsole("...");
@@ -90,7 +91,7 @@ public class RoutineThreadClientSide extends Thread {
 	}
 
 	private void abholung() throws UnsupportedEncodingException, IOException {
-		
+
 		Pop3ProxyClientSide.send2ProxyConsole("---------ARBEITEN---------");
 		while (clientAlive) {
 
@@ -152,6 +153,8 @@ public class RoutineThreadClientSide extends Thread {
 				} else {
 					sendMSG("-ERR no arguments an 'QUIT'");
 				}
+			} else {
+				sendMSG("-ERR COMMAND NOT FOUND");
 			}
 		}
 	}
@@ -188,11 +191,10 @@ public class RoutineThreadClientSide extends Thread {
 		if (msg.startsWith("USER")) {
 			String username = msg.substring(msg.indexOf(" ") + 1, msg.length());
 			user = Pop3ProxyServer.userList.getUserbyName(username);
-			if (user != null) {
-				return true;
-			}
-			
+			return user != null;
 
+		} else {
+			sendMSG("-ERR COMMAND NOT FOUND");
 		}
 		return false;
 	}
@@ -202,9 +204,11 @@ public class RoutineThreadClientSide extends Thread {
 		String passwort;
 		if (msg.startsWith("PASS")) {
 			passwort = user.getPasswort();
-			if (passwort.equals(msg.substring(msg.indexOf(" ") + 1, msg.length()))) {
-				return true;
-			}
+
+			return passwort.equals(msg.substring(msg.indexOf(" ") + 1, msg.length()));
+
+		} else {
+			sendMSG("-ERR COMMAND NOT FOUND");
 		}
 		return false;
 	}
@@ -253,7 +257,8 @@ public class RoutineThreadClientSide extends Thread {
 			}
 		}
 		Pop3ProxyClientSide.send2ProxyConsole(ammoundDeletet + " Nachrichten wurden endgueltig geloescht!");
-		Pop3ProxyClientSide.send2ProxyConsole("Verbindung zu: " + client.getInetAddress().getHostAddress() + " geschlossen.");
+		Pop3ProxyClientSide
+				.send2ProxyConsole("Verbindung zu: " + client.getInetAddress().getHostAddress() + " geschlossen.");
 		sendMSG("+OK bye");
 		Pop3ProxyClientSide.send2ProxyConsole("-----------ENDE-----------");
 		clientAlive = false;
