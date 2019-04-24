@@ -59,11 +59,12 @@ public class ServerMAIL {
 					out.println("Subject: Test-E-Mail");
 					out.println("Content-Type: text/plain; charset=us-ascii; format=flowed");
 					out.println("Content-Transfer-Encoding: 7bit");
-
+					out.println("");
 					out.println("ich binn es");
 					out.println("ich binn es");
 					out.println("ich binn es");
 					out.println("ich binn es");
+					out.println("");
 					out.println(".");
 				
 				} else if (input.startsWith("RETR 2")) {
@@ -75,26 +76,30 @@ public class ServerMAIL {
 					out.println("Subject: Test-E-Mail");
 					out.println("Content-Type: text/plain; charset=us-ascii; format=flowed");
 					out.println("Content-Transfer-Encoding: 7bit");
+					out.println(" ");
 					out.println("ich binn es");
 					out.println("ich binn es");
 					out.println("ich binn es");
 					out.println("ich binn es");
 					out.println("ich binn es");
+					out.println(" ");
 					out.println(".");
 
 				} else if (input.startsWith("RETR 3")) {
 
-					out.print("+OK 3 223");
-					out.print("Date: Mon, 18 Oct 2004 04:11:45 +0200");
-					out.print("From: Someone <someone@example.com>");
+					out.println("+OK 3 223");
+					out.println("Date: Mon, 18 Oct 2004 04:11:45 +0200");
+					out.println("From: Someone <someone@example.com>");
 					out.println("To: wiki@example.com");
 					out.println("Subject: Test-E-Mail");
 					out.println("Content-Type: text/plain; charset=us-ascii; format=flowed");
 					out.println("Content-Transfer-Encoding: 7bit");
+					out.println(" ");
 					out.println("ich binn es");
 					out.println("ich binn es");
 					out.println("ich binn es");
 					out.println("ich binn es");
+					out.println(" ");
 					out.println(".");
 				
 				} else if (input.startsWith("RETR 4")) {
@@ -106,7 +111,9 @@ public class ServerMAIL {
 					out.println("Subject: Test-E-Mail");
 					out.println("Content-Type: text/plain; charset=us-ascii; format=flowed");
 					out.println("Content-Transfer-Encoding: 7bit");
+					out.println(" ");
 					out.println("ich binn es");
+					out.println(" ");
 					out.println(".");
 				
 				} else if(input.startsWith("RETR 5")){
@@ -118,7 +125,9 @@ public class ServerMAIL {
 					out.println("Subject: Test-E-Mail");
 					out.println("Content-Type: text/plain; charset=us-ascii; format=flowed");
 					out.println("Content-Transfer-Encoding: 7bit");
+					out.println(" ");
 					out.println("ich binn es");
+					out.println(" ");
 					out.println(".");
 					
 				} else if (input.startsWith("RETR")){

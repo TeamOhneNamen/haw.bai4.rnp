@@ -29,7 +29,7 @@ public class Pop3ProxyServerSide extends Thread{
 		zeitabstand = zeitAbstand;
 		internetAdresse = internetadres;
 	}
-	
+
 	@Override
 	public void run() {
 		

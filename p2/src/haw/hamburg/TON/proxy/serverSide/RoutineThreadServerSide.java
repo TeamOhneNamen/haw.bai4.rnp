@@ -11,6 +11,7 @@ import java.util.ArrayList;
 
 import haw.hamburg.TON.Mail;
 import haw.hamburg.TON.Pop3ProxyServer;
+import haw.hamburg.TON.USER;
 import haw.hamburg.TON.Exceptions.NoopException;
 import haw.hamburg.TON.Exceptions.WrongPasswordException;
 import haw.hamburg.TON.Exceptions.WrongUsernameException;
@@ -62,6 +63,11 @@ public class RoutineThreadServerSide extends Thread {
 				abholung(mailList);
 				loeschung(mailList);
 
+
+//				for (int j = 0; j < mailList.size() ; j++) {
+//					System.out.println(mailList.get(j).getMsg());
+//				}
+				
 			}
 			try {
 				Thread.sleep(ZEITABSTAND);
@@ -131,7 +137,6 @@ public class RoutineThreadServerSide extends Thread {
 		
 	}
 
-	
 
 	private void loeschung(ArrayList<Mail> mailList) {
 		send2ProxyConsole("Loeschen erfolgreich abgeholter E-Mails");
@@ -272,10 +277,10 @@ public class RoutineThreadServerSide extends Thread {
 			if (partResponse.startsWith("-ERR")) {
 				response = partResponse;
 			}else {
-				response = partResponse + "\n";
+				response = partResponse+ "\n";
 				do {
 					partResponse = receveMSG();
-					response = response + partResponse + "\n";
+					response = response + partResponse+ "\n";
 					
 				} while (!partResponse.equals("."));
 			}
