@@ -24,6 +24,7 @@ public class Pop3ProxyServer {
 
 		
 		serverAlive = true;
+//		TODO: read from config file
 		userList.add(new USER("Ferdinand", "Passwort"));
 		
 		new ServerCommandLineThread().start();
@@ -32,10 +33,7 @@ public class Pop3ProxyServer {
 		popClinetSide.start();
 		
 		Pop3ProxyServerSide popServerSide = new Pop3ProxyServerSide(pop3ServerAdress, pop3ServerPort, zeitueberschreitung);
-		popServerSide.start();
-		
-		
-		
+		popServerSide.start();	
 		
 	}
 	

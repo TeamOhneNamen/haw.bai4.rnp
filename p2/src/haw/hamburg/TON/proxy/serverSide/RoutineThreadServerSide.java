@@ -42,6 +42,13 @@ public class RoutineThreadServerSide extends Thread {
 
 	@Override
 	public void run() {
+
+		try {
+			Pop3ProxyServerSide.send2ProxyConsole(receveMSG());
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		clientAlive = true;
 		while (clientAlive) {
 
@@ -86,7 +93,6 @@ public class RoutineThreadServerSide extends Thread {
 	private void abholung(ArrayList<Mail> mailList) {
 		send2ProxyConsole("Abholung aller fuer diesen Account eingetroffenen E-Mails");
 
-		
 		String ergString[] = sendStat();
 		ammound = Integer.parseInt(ergString[1]);
 		mailNumbers = getWichMails(ammound);

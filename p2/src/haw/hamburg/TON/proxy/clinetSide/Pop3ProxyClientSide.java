@@ -8,7 +8,7 @@ import haw.hamburg.TON.Pop3ProxyServer;
 
 public class Pop3ProxyClientSide extends Thread {
 
-	private static int port = 11000; 
+	private static int port; 
 	private static ServerSocket server;
 //	private static int zeitabstand = 30000;
 	
@@ -29,7 +29,6 @@ public class Pop3ProxyClientSide extends Thread {
 	public void run() {
 
 		try {
-			
 			server = new ServerSocket(port);
 			send2ProxyConsole("Server wurde auf port: " + port + " gestartet.");
 			
@@ -43,8 +42,7 @@ public class Pop3ProxyClientSide extends Thread {
 				send2ProxyConsole("Neue Verbindung mit Client: " + tempClient.getInetAddress().getHostAddress() + " eingegangen.");
 				RoutineThreadClientSide btc = new RoutineThreadClientSide(tempClient);
 				btc.start();
-				
-				
+					
 			}
 			
 		} catch (IOException e) {

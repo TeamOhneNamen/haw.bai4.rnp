@@ -35,6 +35,7 @@ public class RoutineThreadClientSide extends Thread {
 	@Override
 	public void run() {
 		clientAlive = true;
+		sendMSG("+OK example.com POP3-Server");
 		while (Pop3ProxyServer.serverAlive && clientAlive) {
 			try {
 				while (!anmeldung()) {
@@ -76,6 +77,7 @@ public class RoutineThreadClientSide extends Thread {
 		while (Pop3ProxyServer.serverAlive) {
 
 			String msg = getMSG();
+			System.out.println(msg);
 			if (msg.startsWith("LIST")) {
 				if (msg.length() >= 6) {
 					String argument = msg.substring(msg.indexOf(" ") + 1, msg.length());
@@ -118,6 +120,14 @@ public class RoutineThreadClientSide extends Thread {
 				} else {
 					sendMSG("-ERR no arguments an 'RSET'");
 				}
+			} else if (msg.startsWith("UIDL")) {
+				if (msg.length() == 4) {
+					sendUIDL();
+				} else if (msg.length() >= 4){
+					String argument = msg.substring(msg.indexOf(" ") + 1, msg.length());
+					int argumentNumber = Integer.valueOf(argument);
+					sendUIDL(argumentNumber);
+				}
 			} else if (msg.startsWith("QUIT")) {
 				if (msg.length() == 4) {
 					sendQUIT();
@@ -125,6 +135,23 @@ public class RoutineThreadClientSide extends Thread {
 					sendMSG("-ERR no arguments an 'QUIT'");
 				}
 			}
+		}
+	}
+
+	private void sendUIDL() {
+		sendMSG("+OK");
+		for (int i = 0; i < user.getMailingQueue().size(); i++) {
+			sendMSG(user.getMailingQueue().get(i).getMailNumber() + " " + user.getMailingQueue().get(i).hashCode());
+		}
+		sendMSG(".");
+	}
+
+	private void sendUIDL(int argumentNumber) {
+		
+		try {
+			sendMSG("+OK " + user.getMailByNumber(argumentNumber).getMailNumber() + " " + user.getMailByNumber(argumentNumber).hashCode());
+		} catch (MailNotExistException e) {
+			sendMSG("-ERR " + "Mail nr: " + argumentNumber + " Not Found");
 		}
 	}
 
@@ -138,16 +165,21 @@ public class RoutineThreadClientSide extends Thread {
 
 	private boolean getUsername() throws UnsupportedEncodingException, IOException, WrongUsernameException {
 		String msg = getMSG();
+		System.out.println("erhalten: " +msg);
 		if (msg.startsWith("USER")) {
 			String username = msg.substring(msg.indexOf(" ") + 1, msg.length());
 			user = Pop3ProxyServer.userList.getUserbyName(username);
-			return true;
+			if (user!=null) {
+				return true;	
+			} 
+			
 		}
 		return false;
 	}
 
 	private boolean checkPasswort() throws UnsupportedEncodingException, IOException {
 		String msg = getMSG();
+		System.out.println("erhalten: " +msg);
 		String passwort;
 		if (msg.startsWith("PASS")) {
 			passwort = user.getPasswort();

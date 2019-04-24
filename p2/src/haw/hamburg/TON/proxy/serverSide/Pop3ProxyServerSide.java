@@ -23,7 +23,7 @@ public class Pop3ProxyServerSide extends Thread{
 		port = internetPort;
 		zeitabstand = zeitAbstand;
 	}
-	
+
 	public Pop3ProxyServerSide(String internetadres, int internetPort, int zeitAbstand) {
 		port = internetPort;
 		zeitabstand = zeitAbstand;
