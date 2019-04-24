@@ -11,10 +11,10 @@ import java.util.ArrayList;
 
 import haw.hamburg.TON.Mail;
 import haw.hamburg.TON.Pop3ProxyServer;
-import haw.hamburg.TON.USER;
 import haw.hamburg.TON.Exceptions.NoopException;
 import haw.hamburg.TON.Exceptions.WrongPasswordException;
 import haw.hamburg.TON.Exceptions.WrongUsernameException;
+import haw.hamburg.TON.proxy.clinetSide.Pop3ProxyClientSide;
 
 public class RoutineThreadServerSide extends Thread {
 
@@ -26,8 +26,6 @@ public class RoutineThreadServerSide extends Thread {
 	private PrintWriter out2Server;
 
 	int ammound = 0;
-	
-	int[] mailNumbers;
 	
 	Socket server;
 
@@ -59,9 +57,13 @@ public class RoutineThreadServerSide extends Thread {
 
 				ArrayList<Mail> mailList = Pop3ProxyServer.userList.get(i).getMailingQueue();
 
+				Pop3ProxyServerSide.send2ProxyConsole("--------ANMELDEN----------");
 				anmeldung(user, pass);
+				Pop3ProxyServerSide.send2ProxyConsole("--------ARBEITEN----------");
 				abholung(mailList);
+				Pop3ProxyServerSide.send2ProxyConsole("--------LOESCHEN----------");
 				loeschung(mailList);
+				Pop3ProxyServerSide.send2ProxyConsole("----------ENDE------------");
 
 
 //				for (int j = 0; j < mailList.size() ; j++) {
@@ -101,38 +103,36 @@ public class RoutineThreadServerSide extends Thread {
 
 		String ergString[] = sendStat();
 		ammound = Integer.parseInt(ergString[1]);
-		mailNumbers = getWichMails(ammound);
 		
 		send2ProxyConsole("Empfange " + ammound + " mails.");
-		for (int j = 0; j < mailNumbers.length; j++) {
+		for (int j = 1; j < ammound+1; j++) {
 			
 			/**
 			 * Zerteile die erste Zeile in seine Attribute
 			 */
-			String msg = sendRetr(mailNumbers[j]);
+			String msg = sendRetr(j);
 			if (isOk(msg)) {
 				String msgFirstLine = msg.substring(0, msg.indexOf("\n"));
 				String msgFirstLineWithountState = msgFirstLine.substring(msgFirstLine.indexOf(" ")+1, msgFirstLine.length());
 				String numberString = msgFirstLineWithountState.substring(0, msgFirstLineWithountState.indexOf(" "));
 				
 				String octetsString = msgFirstLineWithountState.substring(msgFirstLineWithountState.indexOf(" ")+1, msgFirstLineWithountState.length());
-				int number = Integer.valueOf(numberString);
 				int octets = Integer.valueOf(octetsString);
 				
 				// Loesche die erste Zeile von der nachricht
 				msg = msg.substring(msg.indexOf("\n")+1, msg.length());
 				
-				mailList.add(new Mail(msg, octets, number));
-				send2ProxyConsole("Empfange Nachricht: " + number + " von POP3-Server");
+				mailList.add(new Mail(msg, octets));
+				send2ProxyConsole("Empfange Nachricht: " + j + " von POP3-Server");
 			}else {
-				send2ProxyConsole("Nachricht: " + mailNumbers[j] + " konnte nicht vom POP3-Server gelesen werden");
+				send2ProxyConsole("Nachricht: " + j + " konnte nicht vom POP3-Server gelesen werden");
 			}
 			
 		}
 		
 		send2ProxyConsole("Empfangene Nachrichten:");
 		for (int j = 0; j < mailList.size(); j++) {
-			send2ProxyConsole(" -> \t " + mailNumbers[j] + ": " + mailList.get(j).getOctets() + " Octets");
+			send2ProxyConsole(" -> \t " + (j+1) + ": " + mailList.get(j).getOctets() + " Octets");
 		}
 		
 	}
@@ -145,7 +145,7 @@ public class RoutineThreadServerSide extends Thread {
 		for (int j = 0; j < ammound; j++) {
 
 			sendDele(j);
-			send2ProxyConsole("loesche mail: " + mailNumbers[j] + " von POP3-Server");
+			send2ProxyConsole("loesche mail: " + (j+1) + " von POP3-Server");
 		}
 		
 	}

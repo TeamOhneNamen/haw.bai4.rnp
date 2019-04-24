@@ -21,22 +21,31 @@ public class Pop3ProxyServer {
 
 	private static int emailClinetPort = 1300;
 
-	private static int zeitueberschreitung = 3000000;
+	private static int zeitueberschreitung = 30000;
+	public static int timeout = 10000;
+	public static int maxVerbindungen = 4;
 
-	public Pop3ProxyServer(int zeitUeberschreitung) {
+	public Pop3ProxyServer(int zeitUeberschreitung, int timeOut) {
 		zeitueberschreitung = zeitUeberschreitung;
+		timeout = timeOut;
 	}
 
 	public static void main(String[] args) {
 
+		String zeitUeberschreitungString = args[0];
+		String timeoutString = args[1];
+		
+		zeitueberschreitung = Integer.valueOf(zeitUeberschreitungString);
+		timeout = Integer.valueOf(timeoutString);
+		
 		serverAlive = true;
 
 		Properties properties = retrieveProperties(CONFIG_FILE_PATH);
 		userList.add(new USER(properties.getProperty(USER_NAME), properties.getProperty(USER_PASSWORT)));
-
+		
 		new ServerCommandLineThread().start();
 
-		Pop3ProxyClientSide popClinetSide = new Pop3ProxyClientSide(emailClinetPort, zeitueberschreitung);
+		Pop3ProxyClientSide popClinetSide = new Pop3ProxyClientSide(emailClinetPort);
 		popClinetSide.start();
 
 		Pop3ProxyServerSide popServerSide = new Pop3ProxyServerSide(pop3ServerAdress, pop3ServerPort,

@@ -7,9 +7,10 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 
-import javax.swing.text.MaskFormatter;
+import javax.sound.midi.Receiver;
 
 import haw.hamburg.TON.Mail;
 import haw.hamburg.TON.Pop3ProxyServer;
@@ -24,62 +25,77 @@ public class RoutineThreadClientSide extends Thread {
 	private USER user;
 	Socket client;
 	boolean clientAlive = false;
+	int timeout;
 
 	String input;
 
-	public RoutineThreadClientSide(Socket userClinet) throws IOException {
+	public RoutineThreadClientSide(Socket userClinet, int timeout) throws IOException {
 		client = userClinet;
-		inFromClient = new BufferedReader(new InputStreamReader(client.getInputStream(), StandardCharsets.UTF_8));
-		out2Client = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8), true);
-
+		this.timeout = timeout;
 	}
 
 	@Override
 	public void run() {
-		clientAlive = true;
-		sendMSGLine("+OK example.com POP3-Server");
-		while (Pop3ProxyServer.serverAlive && clientAlive) {
-			try {
-				while (!anmeldung()) {
+		
+		try {
+			inFromClient = new BufferedReader(new InputStreamReader(client.getInputStream(), StandardCharsets.UTF_8));
+			out2Client = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8), true);
+			
+			client.setSoTimeout(timeout);
+			clientAlive = true;
+			sendMSG("+OK Verbindung hergestellt");
+			while (Pop3ProxyServer.serverAlive && clientAlive) {
+				try {
+					while (!anmeldung()) {
+					}
+					abholung();
+				} catch (IOException e) {
+					Pop3ProxyClientSide.send2ProxyConsole("Client: " + client.getLocalAddress() + " disconnected.");
+					clientAlive = false;
+				} catch (WrongUsernameException e) {
+					Pop3ProxyClientSide.send2ProxyConsole("Username existiert nicht");
 				}
-				abholung();
-			} catch (IOException e) {
-				Pop3ProxyClientSide.send2ProxyConsole("Client: " + client.getLocalAddress() + " disconnected.");
-				clientAlive = false;
-			} catch (WrongUsernameException e) {
-				Pop3ProxyClientSide.send2ProxyConsole("Username existiert nicht");
 			}
+		} catch (SocketException e1) {
+			sendMSG("-ERR Out Of Time");
+			Pop3ProxyClientSide.send2ProxyConsole("verliert die Verbundung");
+			clientAlive = false;
+		} catch (IOException e1) {
+			clientAlive = false;
+			e1.printStackTrace();
 		}
-
 	}
 
 	private boolean anmeldung() throws UnsupportedEncodingException, IOException, WrongUsernameException {
-		Pop3ProxyClientSide.send2ProxyConsole("Anmeldung von POP3-Client mit den gueltigen Account-Daten");
-		Pop3ProxyClientSide.send2ProxyConsole("Versuche Anmeldung von:");
+		Pop3ProxyClientSide.send2ProxyConsole("---------ANMELDEN---------");
+		
 		if (getUsername()) {
-			Pop3ProxyClientSide.send2ProxyConsole(user.getUsername());
-			sendMSGLine("+OK USERNAME CORREKT");
+			Pop3ProxyClientSide.send2ProxyConsole("anmelden von: " + user.getUsername());
+			Pop3ProxyClientSide.send2ProxyConsole("...");
+			sendMSG("+OK USERNAME CORREKT");
 			if (checkPasswort()) {
-				sendMSGLine("+OK PASSWORD CORREKT");
-				Pop3ProxyClientSide.send2ProxyConsole("User angemeldet");
+				sendMSG("+OK PASSWORD CORREKT");
+				Pop3ProxyClientSide.send2ProxyConsole(user.getUsername() + " angemeldet");
 				return true;
 			} else {
-				sendMSGLine("-ERR PASSWORD INCORREKT");
+				sendMSG("-ERR PASSWORD INCORREKT");
 				return false;
 			}
 
 		} else {
-			sendMSGLine("-ERR USERNAME INCORREKT");
+			sendMSG("-ERR USERNAME INCORREKT");
 			return false;
 		}
 
 	}
 
 	private void abholung() throws UnsupportedEncodingException, IOException {
-		while (Pop3ProxyServer.serverAlive) {
+		
+		Pop3ProxyClientSide.send2ProxyConsole("---------ARBEITEN---------");
+		while (clientAlive) {
 
 			String msg = getMSG();
-			System.out.println(msg);
+			Pop3ProxyClientSide.send2ProxyConsole("(" + user.getUsername() + ") Verarbeite: " + msg);
 			if (msg.startsWith("LIST")) {
 				if (msg.length() >= 6) {
 					String argument = msg.substring(msg.indexOf(" ") + 1, msg.length());
@@ -94,7 +110,7 @@ public class RoutineThreadClientSide extends Thread {
 					int argumentNumber = Integer.valueOf(argument);
 					sendDELE(argumentNumber);
 				} else {
-					sendMSGLine("-ERR no arguments an 'DELE'");
+					sendMSG("-ERR no arguments an 'DELE'");
 				}
 			} else if (msg.startsWith("RETR")) {
 				if (msg.length() >= 6) {
@@ -102,30 +118,30 @@ public class RoutineThreadClientSide extends Thread {
 					int argumentNumber = Integer.valueOf(argument);
 					sendRETR(argumentNumber);
 				} else {
-					sendMSGLine("-ERR no arguments an 'RETR'");
+					sendMSG("-ERR no arguments an 'RETR'");
 				}
 			} else if (msg.startsWith("NOOP")) {
 				if (msg.length() == 4) {
 					sendNOOP();
 				} else {
-					sendMSGLine("-ERR no arguments an 'NOOP'");
+					sendMSG("-ERR no arguments an 'NOOP'");
 				}
 			} else if (msg.startsWith("STAT")) {
 				if (msg.length() == 4) {
 					sendSTAT();
 				} else {
-					sendMSGLine("-ERR no arguments an 'STAT'");
+					sendMSG("-ERR no arguments an 'STAT'");
 				}
 			} else if (msg.startsWith("RSET")) {
 				if (msg.length() == 4) {
 					sendRSET();
 				} else {
-					sendMSGLine("-ERR no arguments an 'RSET'");
+					sendMSG("-ERR no arguments an 'RSET'");
 				}
 			} else if (msg.startsWith("UIDL")) {
 				if (msg.length() == 4) {
 					sendUIDL();
-				} else if (msg.length() >= 4){
+				} else if (msg.length() >= 4) {
 					String argument = msg.substring(msg.indexOf(" ") + 1, msg.length());
 					int argumentNumber = Integer.valueOf(argument);
 					sendUIDL(argumentNumber);
@@ -134,26 +150,28 @@ public class RoutineThreadClientSide extends Thread {
 				if (msg.length() == 4) {
 					sendQUIT();
 				} else {
-					sendMSGLine("-ERR no arguments an 'QUIT'");
+					sendMSG("-ERR no arguments an 'QUIT'");
 				}
 			}
 		}
 	}
 
 	private void sendUIDL() {
-		sendMSGLine("+OK");
+		sendMSG("+OK");
 		for (int i = 0; i < user.getMailingQueue().size(); i++) {
-			sendMSGLine(user.getMailingQueue().get(i).getMailNumber() + " " + user.getMailingQueue().get(i).hashCode());
+			sendMSG((i + 1) + " " + user.getMailingQueue().get(i).hashCode());
+
 		}
-		sendMSGLine(".");
+		sendMSG(".");
+
 	}
 
 	private void sendUIDL(int argumentNumber) {
-		
+
 		try {
-			sendMSGLine("+OK " + user.getMailByNumber(argumentNumber).getMailNumber() + " " + user.getMailByNumber(argumentNumber).hashCode());
+			sendMSG("+OK " + argumentNumber + " " + user.getMailByNumber(argumentNumber).hashCode());
 		} catch (MailNotExistException e) {
-			sendMSGLine("-ERR " + "Mail nr: " + argumentNumber + " Not Found");
+			sendMSG("-ERR " + "Mail nr: " + argumentNumber + " Not Found");
 		}
 	}
 
@@ -161,31 +179,26 @@ public class RoutineThreadClientSide extends Thread {
 		return inFromClient.readLine();
 	}
 
-	private void sendMSGLine(String msg) {
-		out2Client.println(msg);
-	}
 	private void sendMSG(String msg) {
-		out2Client.print(msg);
-		out2Client.flush();
+		out2Client.println(msg);
 	}
 
 	private boolean getUsername() throws UnsupportedEncodingException, IOException, WrongUsernameException {
 		String msg = getMSG();
-		System.out.println("erhalten: " +msg);
 		if (msg.startsWith("USER")) {
 			String username = msg.substring(msg.indexOf(" ") + 1, msg.length());
 			user = Pop3ProxyServer.userList.getUserbyName(username);
-			if (user!=null) {
-				return true;	
-			} 
+			if (user != null) {
+				return true;
+			}
 			
+
 		}
 		return false;
 	}
 
 	private boolean checkPasswort() throws UnsupportedEncodingException, IOException {
 		String msg = getMSG();
-		System.out.println("erhalten: " +msg);
 		String passwort;
 		if (msg.startsWith("PASS")) {
 			passwort = user.getPasswort();
@@ -198,7 +211,7 @@ public class RoutineThreadClientSide extends Thread {
 
 	private void sendNOOP() {
 
-		sendMSGLine("+OK");
+		sendMSG("+OK");
 
 	}
 
@@ -213,7 +226,7 @@ public class RoutineThreadClientSide extends Thread {
 			}
 
 		}
-		sendMSGLine("+OK " + ammoundOfMSG + " messages (" + ammoundOfOctets + " octets)");
+		sendMSG("+OK " + ammoundOfMSG + " messages (" + ammoundOfOctets + " octets)");
 	}
 
 	private void sendDELE(int index) {
@@ -221,12 +234,12 @@ public class RoutineThreadClientSide extends Thread {
 			Mail message = user.getMailByNumber(index);
 			if (!message.isDeleteFlag()) {
 				message.setDeleteFlag(true);
-				sendMSGLine("+OK message " + message.getMailNumber() + " deleted");
+				sendMSG("+OK message " + index + " deleted");
 			} else {
-				sendMSGLine("-ERR message " + message.getMailNumber() + " allready deleted");
+				sendMSG("-ERR message " + index + " allready deleted");
 			}
 		} catch (MailNotExistException e) {
-			sendMSGLine("-ERR message " + index + " allready deleted");
+			sendMSG("-ERR message " + index + " allready deleted");
 		}
 
 	}
@@ -240,6 +253,9 @@ public class RoutineThreadClientSide extends Thread {
 			}
 		}
 		Pop3ProxyClientSide.send2ProxyConsole(ammoundDeletet + " Nachrichten wurden endgueltig geloescht!");
+		Pop3ProxyClientSide.send2ProxyConsole("Verbindung zu: " + client.getInetAddress().getHostAddress() + " geschlossen.");
+		sendMSG("+OK bye");
+		Pop3ProxyClientSide.send2ProxyConsole("-----------ENDE-----------");
 		clientAlive = false;
 	}
 
@@ -248,34 +264,32 @@ public class RoutineThreadClientSide extends Thread {
 		try {
 			Mail message = user.getMailByNumber(index);
 			if (!message.isDeleteFlag()) {
-				sendMSGLine("+OK " + message.getOctets() + " octets");
+				sendMSG("+OK " + message.getOctets() + " octets");
 				String[] msgarr = message.getMsg().split("\n");
 				for (int i = 0; i < msgarr.length; i++) {
 					String temp = msgarr[i];
 					if (temp.equals(" ")) {
 						temp = "\n";
 					}
-					sendMSGLine(temp);
+					sendMSG(temp);
 
-					System.out.println(i + "_:" +temp);
-					
 				}
 			} else {
-				sendMSGLine("-ERR message " + index + " already deleted");
-				
+				sendMSG("-ERR message " + index + " already deleted");
+
 			}
 
 		} catch (MailNotExistException e) {
-			sendMSGLine("-ERR message " + index + " dont exist");
+			sendMSG("-ERR message " + index + " dont exist");
 		}
-		
+
 	}
 
 	private void sendRSET() {
 		int ammoundOfDeletedMSG = user.getAmmoundOfDeletedMessages();
 		int ammoundOfDeletedOctets = user.getAmmoundOfDeletedOctets();
 		user.setAllMailsDeleteState(false);
-		sendMSGLine("+OK maildrop has " + ammoundOfDeletedMSG + " messages (" + ammoundOfDeletedOctets + " octets)");
+		sendMSG("+OK maildrop has " + ammoundOfDeletedMSG + " messages (" + ammoundOfDeletedOctets + " octets)");
 	}
 
 	private void sendList() {
@@ -288,25 +302,24 @@ public class RoutineThreadClientSide extends Thread {
 			}
 
 		}
-		sendMSGLine("+OK " + ammoundOfMSG + " messages (" + ammoundOfOctets + " octets)");
+		sendMSG("+OK " + ammoundOfMSG + " messages (" + ammoundOfOctets + " octets)");
 		for (int i = 0; i < user.getMailingQueue().size(); i++) {
 			if (!user.getMailingQueue().get(i).isDeleteFlag()) {
-				sendMSGLine(user.getMailingQueue().get(i).getMailNumber() + " "
-						+ user.getMailingQueue().get(i).getOctets());
+				sendMSG((i + 1) + " " + user.getMailingQueue().get(i).getOctets());
 			}
 
 		}
-		sendMSGLine(".");
+		sendMSG(".");
 	}
 
 	private void sendList(int argumentNumber) {
 
 		try {
 			int ammoundOfOctets = user.getMailByNumber(argumentNumber).getOctets();
-			sendMSGLine("+OK " + argumentNumber + " " + ammoundOfOctets);
+			sendMSG("+OK " + argumentNumber + " " + ammoundOfOctets);
 
 		} catch (MailNotExistException e) {
-			sendMSGLine("-ERR message " + argumentNumber + " dont Exist");
+			sendMSG("-ERR message " + argumentNumber + " dont Exist");
 		}
 	}
 

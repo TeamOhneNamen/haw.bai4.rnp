@@ -67,14 +67,11 @@ public class USER {
 	}
 	
 	public Mail getMailByNumber(int mailNumber) throws MailNotExistException {
-		for (int i = 0; i < mailingQueue.size(); i++) {
-			if (mailingQueue.get(i).getMailNumber() == mailNumber) {
-
-				return mailingQueue.get(i);
-			}
+		try {
+			return getMailingQueue().get(mailNumber-1);
+		} catch (Exception e) {
+			throw new MailNotExistException();
 		}
-		throw new MailNotExistException();
-		
 	}
 	
 }

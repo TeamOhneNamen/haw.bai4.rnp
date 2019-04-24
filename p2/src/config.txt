@@ -1,2 +1,2 @@
-USER_NAME = "Ferdinand"
-USER_PASSWORD = "Passwort"
+USER_NAME = Ferdinand@localhost.lo
+USER_PASSWORT = Passwort

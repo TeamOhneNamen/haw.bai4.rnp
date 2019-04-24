@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
+import haw.hamburg.TON.proxy.clinetSide.Pop3ProxyClientSide;
 import haw.hamburg.TON.proxy.serverSide.Pop3ProxyServerSide;
 
 public class ServerCommandLineThread extends Thread {
@@ -32,6 +33,9 @@ public class ServerCommandLineThread extends Thread {
 		case "QUIT":
 			Pop3ProxyServerSide.send2ProxyConsole("Beende Server");
 			System.exit(-1);
+			break;
+		case "CLINETS":
+			Pop3ProxyServerSide.send2ProxyConsole((Pop3ProxyServer.maxVerbindungen - Pop3ProxyClientSide.buisThreadList.manyConnections()) + " Clients frei");
 			break;
 			
 		default:

@@ -27,7 +27,7 @@ public class ServerMAIL {
 			in = new BufferedReader(new InputStreamReader(client.getInputStream(), StandardCharsets.UTF_8));
 			out = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8), true);
 
-			out.println("+OK example.com POP3-Server");
+			out.println("+OK Verbindung zu Server aufgenommen");
 			while (alive) {
 				System.out.println("[SERVER] warte auf antwort!");
 				String input = in.readLine();
@@ -59,12 +59,9 @@ public class ServerMAIL {
 					out.println("Subject: Test-E-Mail");
 					out.println("Content-Type: text/plain; charset=us-ascii; format=flowed");
 					out.println("Content-Transfer-Encoding: 7bit");
-					out.println("");
+					out.println(" ");
 					out.println("ich binn es");
-					out.println("ich binn es");
-					out.println("ich binn es");
-					out.println("ich binn es");
-					out.println("");
+					out.println(" ");
 					out.println(".");
 				
 				} else if (input.startsWith("RETR 2")) {
@@ -77,9 +74,6 @@ public class ServerMAIL {
 					out.println("Content-Type: text/plain; charset=us-ascii; format=flowed");
 					out.println("Content-Transfer-Encoding: 7bit");
 					out.println(" ");
-					out.println("ich binn es");
-					out.println("ich binn es");
-					out.println("ich binn es");
 					out.println("ich binn es");
 					out.println("ich binn es");
 					out.println(" ");
@@ -98,7 +92,6 @@ public class ServerMAIL {
 					out.println("ich binn es");
 					out.println("ich binn es");
 					out.println("ich binn es");
-					out.println("ich binn es");
 					out.println(" ");
 					out.println(".");
 				
@@ -113,6 +106,9 @@ public class ServerMAIL {
 					out.println("Content-Transfer-Encoding: 7bit");
 					out.println(" ");
 					out.println("ich binn es");
+					out.println("ich binn es");
+					out.println("ich binn es");
+					out.println("ich binn es");
 					out.println(" ");
 					out.println(".");
 				
@@ -126,6 +122,10 @@ public class ServerMAIL {
 					out.println("Content-Type: text/plain; charset=us-ascii; format=flowed");
 					out.println("Content-Transfer-Encoding: 7bit");
 					out.println(" ");
+					out.println("ich binn es");
+					out.println("ich binn es");
+					out.println("ich binn es");
+					out.println("ich binn es");
 					out.println("ich binn es");
 					out.println(" ");
 					out.println(".");

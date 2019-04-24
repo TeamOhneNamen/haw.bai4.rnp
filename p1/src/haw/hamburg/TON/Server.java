@@ -119,7 +119,7 @@ public class Server {
 	
 	//send an Client
 	private static void send(String output, Socket client) throws IOException {
-		out = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8), true);
+		PrintWriter out = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8), true);
 		if (output.getBytes().length < 255) {
 			out.println(output);
 		} else {
