@@ -1,0 +1,2 @@
+USER_NAME = "Ferdinand"
+USER_PASSWORD = "Passwort"
