@@ -27,7 +27,7 @@ public class Client {
 			connect2server = new Socket(IP, PORT);
 
 			// lese aus BufferedReader die nachricht vom Server(Begrüßung)
-			BufferedReader serverInput = new BufferedReader(new InputStreamReader(connect2server.getInputStream(), "UTF-8"));
+			BufferedReader serverInput = new BufferedReader(new InputStreamReader(connect2server.getInputStream(), "UTF-8"), MAXBIT);
 			String serverResponse = serverInput.readLine();
 			System.out.println(serverResponse);
 			

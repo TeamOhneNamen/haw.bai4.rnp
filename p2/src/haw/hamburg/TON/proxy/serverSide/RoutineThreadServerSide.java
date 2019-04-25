@@ -14,7 +14,7 @@ import haw.hamburg.TON.Pop3ProxyServer;
 //import haw.hamburg.TON.Exceptions.NoopException;
 import haw.hamburg.TON.Exceptions.WrongPasswordException;
 import haw.hamburg.TON.Exceptions.WrongUsernameException;
-import haw.hamburg.TON.proxy.clinetSide.Pop3ProxyClientSide;
+//import haw.hamburg.TON.proxy.clinetSide.Pop3ProxyClientSide;
 
 public class RoutineThreadServerSide extends Thread {
 
@@ -65,7 +65,7 @@ public class RoutineThreadServerSide extends Thread {
 				Pop3ProxyServerSide.send2ProxyConsole("--------LOESCHEN----------");
 				loeschung(mailList);
 				Pop3ProxyServerSide.send2ProxyConsole("--------ABMELDEN----------");
-				sendQuit();
+//				sendQuit();
 				Pop3ProxyServerSide.send2ProxyConsole("----------ENDE------------");
 				
 				
@@ -86,7 +86,7 @@ public class RoutineThreadServerSide extends Thread {
 	private void anmeldung(String user, String pass) {
 
 		send2ProxyConsole("Anmeldung bei dem jeweiligen POP3-Server mit den gueltigen Account-Daten");
-
+		
 		try {
 			
 			sendUser(user);
@@ -323,21 +323,23 @@ public class RoutineThreadServerSide extends Thread {
 //		}
 //	}
 	
-	private void sendQuit() {
-			// send to server "LIST" command
-			
-			try {
-				sendMSG("QUIT");
-				if(isOk(receveMSG())) {
-					Pop3ProxyClientSide.send2ProxyConsole("User: " + user + " erfolgreich abgemeldet"); 
-				}else {
-					Pop3ProxyClientSide.send2ProxyConsole("Fehler beim abmelden von: " + user); 
-				}
-			} catch (IOException e) {
-				Pop3ProxyClientSide.send2ProxyConsole("Fehler beim abmelden von: " + user); 
-			}
-		
-	}
+//	private void sendQuit() {
+//			// send to server "LIST" command
+//			
+//			try {
+//				sendMSG("QUIT");
+//				if(isOk(receveMSG())) {
+//					Pop3ProxyClientSide.send2ProxyConsole("User: " + user + " erfolgreich abgemeldet"); 
+//				}else {
+//					Pop3ProxyClientSide.send2ProxyConsole("Fehler beim abmelden von: " + user); 
+//				}
+//			} catch (IOException e) {
+//				Pop3ProxyClientSide.send2ProxyConsole("Fehler beim abmelden von: " + user); 
+//			} catch (NullPointerException e) {
+//				Pop3ProxyClientSide.send2ProxyConsole("Nullpointer Exception");
+//			}
+//		
+//	}
 
 
 	private void sendMSG(String msg) {
@@ -349,6 +351,7 @@ public class RoutineThreadServerSide extends Thread {
 	}
 
 	private boolean isOk(String input2) {
+		System.out.println(input2);
 		return input2.substring(0, 3).toUpperCase().equals("+OK");
 	}
 

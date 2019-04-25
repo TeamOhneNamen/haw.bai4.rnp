@@ -31,7 +31,7 @@ public class Server {
 
 		// füge in die BTL so viele leere BusinessThreads(BT) ein, wie es verbindungen geben soll
 		for (int i = 0; i < MAXVERBUNDUNGEN; i++) {
-			buisThreadList.add(new BusinessThread(null));
+			buisThreadList.add(new BusinessThread(null, TIMEOUT));
 		}
 		
 		
@@ -59,7 +59,7 @@ public class Server {
 				if (freeThread!=-1) {
 					
 					//startet einen behandelnden Thread
-					BusinessThread tempClient = new BusinessThread(client);
+					BusinessThread tempClient = new BusinessThread(client, TIMEOUT);
 					buisThreadList.set(freeThread, tempClient) ;
 					tempClient.start();
 

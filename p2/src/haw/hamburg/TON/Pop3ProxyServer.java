@@ -12,8 +12,8 @@ public class Pop3ProxyServer {
 	public static boolean serverAlive = false;
 	public static USERList userList = new USERList();
 
-	private static String pop3ServerAdress = "localhost";
-	private static int pop3ServerPort = 12345;
+	private static String pop3ServerAdress = "lab30.cpt.haw-hamburg.de";
+	private static int pop3ServerPort = 11000;
 
 	private final static String CONFIG_FILE_PATH = "src/config.txt";
 	private final static String USER_NAME = "USER_NAME";
@@ -32,11 +32,11 @@ public class Pop3ProxyServer {
 
 	public static void main(String[] args) {
 
-		String zeitUeberschreitungString = args[0];
-		String timeoutString = args[1];
-		
-		zeitueberschreitung = Integer.valueOf(zeitUeberschreitungString);
-		timeout = Integer.valueOf(timeoutString);
+//		String zeitUeberschreitungString = args[0];
+//		String timeoutString = args[1];
+//		
+//		zeitueberschreitung = Integer.valueOf(zeitUeberschreitungString);
+//		timeout = Integer.valueOf(timeoutString);
 		
 		serverAlive = true;
 

@@ -42,7 +42,7 @@ public class RoutineThreadClientSide extends Thread {
 
 			client.setSoTimeout(timeout);
 			clientAlive = true;
-			sendMSG("+OK Verbindung hergestellt");
+//			sendMSG("+OK Verbindung hergestellt");
 			while (Pop3ProxyServer.serverAlive && clientAlive) {
 				try {
 					while (!anmeldung()) {
@@ -68,6 +68,7 @@ public class RoutineThreadClientSide extends Thread {
 	private boolean anmeldung() throws UnsupportedEncodingException, IOException, WrongUsernameException {
 		Pop3ProxyClientSide.send2ProxyConsole("---------ANMELDEN---------");
 
+		sendMSG("+OK Welcome to Proxy");
 		if (getUsername()) {
 			Pop3ProxyClientSide.send2ProxyConsole("anmelden von: " + user.getUsername());
 			Pop3ProxyClientSide.send2ProxyConsole("...");
@@ -177,7 +178,11 @@ public class RoutineThreadClientSide extends Thread {
 	}
 
 	private String getMSG() throws UnsupportedEncodingException, IOException {
-		return inFromClient.readLine();
+		char[] message = new char[255];
+		inFromClient.read(message, 0, 255);
+		String messageString = String.valueOf(message);
+		System.out.print("getMSG(): "+ messageString);
+		return messageString;
 	}
 
 	private void sendMSG(String msg) {
@@ -186,7 +191,10 @@ public class RoutineThreadClientSide extends Thread {
 
 	private boolean getUsername() throws UnsupportedEncodingException, IOException, WrongUsernameException {
 		String msg = getMSG();
-		if (msg.startsWith("USER")) {
+		System.out.println(msg);
+		if (msg==null) {
+			sendMSG("-ERR");
+		}else if (msg.startsWith("USER")) {
 			String username = msg.substring(msg.indexOf(" ") + 1, msg.length());
 			user = Pop3ProxyServer.userList.getUserbyName(username);
 			return user != null;
