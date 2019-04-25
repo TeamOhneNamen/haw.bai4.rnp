@@ -194,9 +194,9 @@ public class RoutineThreadClientSide extends Thread {
 
 	//TODO: KEIL READ
 	private void sendMSG(String msg) {
-		out2Client.println(msg);
-//		out2Client.print(msg + "\n");
-//		out2Client.flush();
+//		out2Client.println(msg);
+		out2Client.print(msg + "\r\n");
+		out2Client.flush();
 	}
 
 	private boolean getUsername() throws UnsupportedEncodingException, IOException {
