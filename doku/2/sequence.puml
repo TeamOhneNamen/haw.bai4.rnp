@@ -1,0 +1,21 @@
+@startuml
+Client->Server: **USER** Ferdinand
+Server->Client: **+OK** Der User existiert
+Client->Server: **PASS** Passwort
+Server->Client: **+OK** Das Passwort ist korrekt
+
+Client->Server: **LIST** 1
+Server->Client: **+OK** 1 240
+
+Client->Server: **RETR** 1
+Server->Client: **+OK**  1 240\n Date: Mon, 18 Oct 2004 04:11:45 +0200\nFrom: Someone <someone@example.com>\nTo: wiki@example.com\nSubject: Test-E-Mail\nContent-Type: text/plain; charset=us-ascii; format=flowed\nich binn es\n.
+
+Client->Server: **LIST**
+Server->Client: **+OK** 5 messages (3423 octets)\n1 245\n2 223\n3 262\n4 2453\n5 240\n.
+
+Client->Server: **QUIT**
+Server->Client: **+OK** 5 messages deleted
+
+Client->Server: **ASDF** ghjk
+Server->Client: **-ERR** ASDF ghjk
+@enduml
