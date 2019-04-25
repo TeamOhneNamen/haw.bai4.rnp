@@ -25,6 +25,12 @@ public class RoutineThreadClientSide extends Thread {
 	boolean clientAlive = false;
 	int timeout;
 
+	//messages
+	final static String USERNAME_NOT_FOUND = "-ERR USERNAME NOT EXIST";
+	final static String COMMAND_NOT_FOUND = "-ERR COMMAND NOT FOUND";
+	
+	
+	
 	String input;
 
 	public RoutineThreadClientSide(Socket userClinet, int timeout) throws IOException {
@@ -37,23 +43,22 @@ public class RoutineThreadClientSide extends Thread {
 
 		try {
 			inFromClient = new BufferedReader(new InputStreamReader(client.getInputStream(), StandardCharsets.UTF_8));
-			out2Client = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8),
-					true);
+			out2Client = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8), true);
 
 			client.setSoTimeout(timeout);
 			clientAlive = true;
-//			sendMSG("+OK Verbindung hergestellt");
+			sendMSG("+OK Welcome to Proxy");
 			while (Pop3ProxyServer.serverAlive && clientAlive) {
+				
 				try {
 					while (!anmeldung()) {
+//					anmeldung();
 					}
 					abholung();
 				} catch (IOException e) {
 					Pop3ProxyClientSide.send2ProxyConsole("Client: " + client.getLocalAddress() + " disconnected.");
 					clientAlive = false;
-				} catch (WrongUsernameException e) {
-					Pop3ProxyClientSide.send2ProxyConsole("Username existiert nicht");
-				}
+				} 
 			}
 		} catch (SocketException e1) {
 			sendMSG("-ERR Out Of Time");
@@ -65,10 +70,9 @@ public class RoutineThreadClientSide extends Thread {
 		}
 	}
 
-	private boolean anmeldung() throws UnsupportedEncodingException, IOException, WrongUsernameException {
+	private boolean anmeldung() throws UnsupportedEncodingException, IOException {
 		Pop3ProxyClientSide.send2ProxyConsole("---------ANMELDEN---------");
 
-		sendMSG("+OK Welcome to Proxy");
 		if (getUsername()) {
 			Pop3ProxyClientSide.send2ProxyConsole("anmelden von: " + user.getUsername());
 			Pop3ProxyClientSide.send2ProxyConsole("...");
@@ -83,7 +87,6 @@ public class RoutineThreadClientSide extends Thread {
 			}
 
 		} else {
-			sendMSG("-ERR USERNAME INCORREKT");
 			return false;
 		}
 
@@ -153,7 +156,7 @@ public class RoutineThreadClientSide extends Thread {
 					sendMSG("-ERR no arguments an 'QUIT'");
 				}
 			} else {
-				sendMSG("-ERR COMMAND NOT FOUND");
+				sendMSG(COMMAND_NOT_FOUND);
 			}
 		}
 	}
@@ -177,30 +180,45 @@ public class RoutineThreadClientSide extends Thread {
 		}
 	}
 
+
+	//TODO: KEIL READ
 	private String getMSG() throws UnsupportedEncodingException, IOException {
-		char[] message = new char[255];
-		inFromClient.read(message, 0, 255);
-		String messageString = String.valueOf(message);
-		System.out.print("getMSG(): "+ messageString);
+//		char[] message = new char[255];
+//		inFromClient.read(message, 0, 255);
+//		String[] messages = new String(message, 0, 255).split("\r\n");
+//		System.out.print("getMSG(): "+ messages[0]);
+//		String messageString = messages[0];
+		String messageString = inFromClient.readLine();
 		return messageString;
 	}
 
+	//TODO: KEIL READ
 	private void sendMSG(String msg) {
 		out2Client.println(msg);
+//		out2Client.print(msg + "\n");
+//		out2Client.flush();
 	}
 
-	private boolean getUsername() throws UnsupportedEncodingException, IOException, WrongUsernameException {
+	private boolean getUsername() throws UnsupportedEncodingException, IOException {
 		String msg = getMSG();
 		System.out.println(msg);
 		if (msg==null) {
-			sendMSG("-ERR");
-		}else if (msg.startsWith("USER")) {
+			sendMSG("-ERR EMPTY COMMAND");
+		} else if (msg.startsWith("USER")) {
 			String username = msg.substring(msg.indexOf(" ") + 1, msg.length());
-			user = Pop3ProxyServer.userList.getUserbyName(username);
-			return user != null;
-
+			
+			try {
+				user = Pop3ProxyServer.userList.getUserbyName(username);
+				return true;
+				
+			} catch (WrongUsernameException e) {
+				Pop3ProxyClientSide.send2ProxyConsole(USERNAME_NOT_FOUND);
+				sendMSG(USERNAME_NOT_FOUND);
+				return false;
+			}
+			
 		} else {
-			sendMSG("-ERR COMMAND NOT FOUND");
+			sendMSG(COMMAND_NOT_FOUND);
 		}
 		return false;
 	}
@@ -210,11 +228,9 @@ public class RoutineThreadClientSide extends Thread {
 		String passwort;
 		if (msg.startsWith("PASS")) {
 			passwort = user.getPasswort();
-
 			return passwort.equals(msg.substring(msg.indexOf(" ") + 1, msg.length()));
-
 		} else {
-			sendMSG("-ERR COMMAND NOT FOUND");
+			sendMSG(COMMAND_NOT_FOUND);
 		}
 		return false;
 	}

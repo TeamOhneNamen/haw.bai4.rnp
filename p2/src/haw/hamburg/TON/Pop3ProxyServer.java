@@ -43,14 +43,14 @@ public class Pop3ProxyServer {
 		Properties properties = retrieveProperties(CONFIG_FILE_PATH);
 		userList.add(new USER(properties.getProperty(USER_NAME), properties.getProperty(USER_PASSWORT)));
 		
-		new ServerCommandLineThread().start();
+//		new ServerCommandLineThread().start();
 
 		Pop3ProxyClientSide popClinetSide = new Pop3ProxyClientSide(emailClinetPort);
 		popClinetSide.start();
 
-		Pop3ProxyServerSide popServerSide = new Pop3ProxyServerSide(pop3ServerAdress, pop3ServerPort,
-				zeitueberschreitung);
-		popServerSide.start();
+//		Pop3ProxyServerSide popServerSide = new Pop3ProxyServerSide(pop3ServerAdress, pop3ServerPort,
+//				zeitueberschreitung);
+//		popServerSide.start();
 
 	}
 	//reads properties from a config file at the given path
