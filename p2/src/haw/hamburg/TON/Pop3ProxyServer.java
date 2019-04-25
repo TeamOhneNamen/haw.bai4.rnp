@@ -32,11 +32,11 @@ public class Pop3ProxyServer {
 
 	public static void main(String[] args) {
 
-		String zeitUeberschreitungString = args[0];
-		String timeoutString = args[1];
-		
-		zeitueberschreitung = Integer.valueOf(zeitUeberschreitungString);
-		timeout = Integer.valueOf(timeoutString);
+//		String zeitUeberschreitungString = args[0];
+//		String timeoutString = args[1];
+//		
+//		zeitueberschreitung = Integer.valueOf(zeitUeberschreitungString);
+//		timeout = Integer.valueOf(timeoutString);
 		
 		serverAlive = true;
 
