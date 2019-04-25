@@ -15,6 +15,8 @@ import java.util.ArrayList;
 public class BusinessThread extends Thread {
 	
 	boolean shutdowned = false;
+	final static int MAX_CHARS = 1000;
+	static int timeout = 30000;
 	public boolean clientAlive = false;
 	Socket client = null;
 	static String passwort = "1234";
@@ -22,9 +24,10 @@ public class BusinessThread extends Thread {
 	BufferedReader in;
 	PrintWriter out;
 
-	public BusinessThread(Socket client) throws UnsupportedEncodingException, IOException {
+	public BusinessThread(Socket client, int timeout) throws UnsupportedEncodingException, IOException {
 		this.client = client;
-
+		this.timeout = timeout;
+		
 		// hinzufügen aller Commands
 		commands.add("UPPERCASE");
 		commands.add("LOWERCASE");
@@ -41,9 +44,9 @@ public class BusinessThread extends Thread {
 			clientAlive = true;
 			while (clientAlive) {
 				try {
-					in = new BufferedReader(new InputStreamReader(client.getInputStream(), StandardCharsets.UTF_8), 1000);
+					in = new BufferedReader(new InputStreamReader(client.getInputStream(), StandardCharsets.UTF_8), MAX_CHARS);
 					out = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8), true);
-					client.setSoTimeout(30000);
+					
 
 					
 					String serverResponse = in.readLine();
@@ -161,7 +164,7 @@ public class BusinessThread extends Thread {
 				} catch (SocketTimeoutException e) {
 					if (Server.shutdowned) {
 						try {
-							sendOkay("SHUTDOWN");
+//							sendOkay("SHUTDOWN");
 							Server.sServer.close();
 							client.close();
 						} catch (IOException e1) {
@@ -224,6 +227,7 @@ public class BusinessThread extends Thread {
 	private void commandSHUTDOWN(String serverResponse) throws IOException {
 		if (serverResponse.equals(passwort)) {
 			sendOkay("Server IS SHUTDOWNING");
+			Server.buisThreadList.setAllSoTimeout(timeout);
 			Server.close();
 		} else {
 			sendError("NOT THE RIGHT PASSWORD");
@@ -297,5 +301,9 @@ public class BusinessThread extends Thread {
 
 	public void printOut(String msg) {
 		Server.printOut(msg);
+	}
+	
+	private void readLine() {
+		
 	}
 }

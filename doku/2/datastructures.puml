@@ -1,0 +1,26 @@
+@startuml
+class USER {
+ -String username
+ -String Passwort
+ -ArrayList<Mail> mailingQueue
+ +getAmmoundOfDeletedMessages()
+ +getAmmoundOfDeletedOctets()
+ +getMailByNumber(int mailNumber)
+ .. Getter & Setter ..
+ +String username
+ +String Passwort
+ +ArrayList<Mail> mailingQueue
+}
+
+class Mail {
+ -String msg
+ -int octets
+ -boolean deleteFlag
+ .. Getter & Setter ..
+ +String msg
+ +int octets
+ +boolean deleteFlag
+}
+
+USER "1" -- "0..*" Mail
+@enduml
