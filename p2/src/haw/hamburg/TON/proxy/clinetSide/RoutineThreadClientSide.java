@@ -52,7 +52,6 @@ public class RoutineThreadClientSide extends Thread {
 				
 				try {
 					while (!anmeldung()) {
-//					anmeldung();
 					}
 					abholung();
 				} catch (IOException e) {
@@ -73,7 +72,25 @@ public class RoutineThreadClientSide extends Thread {
 	private boolean anmeldung() throws UnsupportedEncodingException, IOException {
 		Pop3ProxyClientSide.send2ProxyConsole("---------ANMELDEN---------");
 
-		if (getUsername()) {
+		String msg = getMSG();
+		while (!msg.startsWith("USER")) {
+			if (msg.startsWith("CAPA")) {
+				//Pop3ProxyClientSide.send2ProxyConsole("+OK " + msg);
+				sendMSG("+OK");
+				sendMSG(".");
+				msg = getMSG();
+			}else if (msg.startsWith("AUTH")) {
+				Pop3ProxyClientSide.send2ProxyConsole("-ERR " + msg);
+				sendMSG("-ERR");
+				msg = getMSG();
+			}else {
+				Pop3ProxyClientSide.send2ProxyConsole("+OK " + msg);
+				sendMSG("+OK " + msg.toUpperCase());
+				msg = getMSG();
+			}
+			
+		}
+		if (getUsername(msg)) {
 			Pop3ProxyClientSide.send2ProxyConsole("anmelden von: " + user.getUsername());
 			Pop3ProxyClientSide.send2ProxyConsole("...");
 			sendMSG("+OK USERNAME CORREKT");
@@ -199,12 +216,8 @@ public class RoutineThreadClientSide extends Thread {
 		out2Client.flush();
 	}
 
-	private boolean getUsername() throws UnsupportedEncodingException, IOException {
-		String msg = getMSG();
-		System.out.println(msg);
-		if (msg==null) {
-			sendMSG("-ERR EMPTY COMMAND");
-		} else if (msg.startsWith("USER")) {
+	private boolean getUsername(String msg) throws UnsupportedEncodingException, IOException {
+		if (msg.startsWith("USER")) {
 			String username = msg.substring(msg.indexOf(" ") + 1, msg.length());
 			
 			try {

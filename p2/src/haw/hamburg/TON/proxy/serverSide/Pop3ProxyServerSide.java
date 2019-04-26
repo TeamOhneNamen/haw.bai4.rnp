@@ -3,6 +3,8 @@ package haw.hamburg.TON.proxy.serverSide;
 import java.io.IOException;
 import java.net.Socket;
 
+import haw.hamburg.TON.Pop3ProxyServer;
+
 public class Pop3ProxyServerSide extends Thread{
 	
 	private int port = 11000; 
@@ -32,6 +34,8 @@ public class Pop3ProxyServerSide extends Thread{
 
 	@Override
 	public void run() {
+
+		Pop3ProxyServer.send2ProxyConsole("Pop3ProxyServerSide gestartet");
 		
 		try {
 			server = new Socket(internetAdresse, port);

@@ -43,7 +43,7 @@ public class Pop3ProxyServer {
 		Properties properties = retrieveProperties(CONFIG_FILE_PATH);
 		userList.add(new USER(properties.getProperty(USER_NAME), properties.getProperty(USER_PASSWORT)));
 		
-//		new ServerCommandLineThread().start();
+		new ServerCommandLineThread().start();
 
 		Pop3ProxyClientSide popClinetSide = new Pop3ProxyClientSide(emailClinetPort);
 		popClinetSide.start();
@@ -63,6 +63,11 @@ public class Pop3ProxyServer {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	public static void send2ProxyConsole(String string) {
+		System.out.println("[ProxyServer <CORE>]: " + string);
+		
 	}
 
 }
