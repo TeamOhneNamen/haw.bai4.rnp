@@ -309,7 +309,7 @@ public class RoutineThreadClientSide extends Thread {
 				for (int i = 0; i < msgarr.length; i++) {
 					String temp = msgarr[i];
 					if (temp.equals(" ")) {
-						temp = "\n";
+						temp = "";
 					}
 					sendMSG(temp);
 

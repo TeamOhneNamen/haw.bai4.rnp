@@ -12,7 +12,8 @@ public class Pop3ProxyServer {
 	public static boolean serverAlive = false;
 	public static USERList userList = new USERList();
 
-	private static String pop3ServerAdress = "lab30.cpt.haw-hamburg.de";
+//	private static String pop3ServerAdress = "lab30.cpt.haw-hamburg.de";
+	private static String pop3ServerAdress = "localhost";
 	private static int pop3ServerPort = 11000;
 
 	private final static String CONFIG_FILE_PATH = "src/config.txt";
@@ -48,9 +49,9 @@ public class Pop3ProxyServer {
 		Pop3ProxyClientSide popClinetSide = new Pop3ProxyClientSide(emailClinetPort);
 		popClinetSide.start();
 
-//		Pop3ProxyServerSide popServerSide = new Pop3ProxyServerSide(pop3ServerAdress, pop3ServerPort,
-//				zeitueberschreitung);
-//		popServerSide.start();
+		Pop3ProxyServerSide popServerSide = new Pop3ProxyServerSide(pop3ServerAdress, pop3ServerPort,
+				zeitueberschreitung);
+		popServerSide.start();
 
 	}
 	//reads properties from a config file at the given path
