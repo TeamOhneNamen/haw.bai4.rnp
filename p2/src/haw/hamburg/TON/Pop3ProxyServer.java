@@ -12,7 +12,8 @@ public class Pop3ProxyServer {
 	public static boolean serverAlive = false;
 	public static USERList userList = new USERList();
 
-	private static String pop3ServerAdress = "lab30.cpt.haw-hamburg.de";
+//	private static String pop3ServerAdress = "lab30.cpt.haw-hamburg.de";
+	private static String pop3ServerAdress = "localhost";
 	private static int pop3ServerPort = 11000;
 
 	private final static String CONFIG_FILE_PATH = "src/config.txt";
@@ -63,6 +64,11 @@ public class Pop3ProxyServer {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	public static void send2ProxyConsole(String string) {
+		System.out.println("[ProxyServer <CORE>]: " + string);
+		
 	}
 
 }

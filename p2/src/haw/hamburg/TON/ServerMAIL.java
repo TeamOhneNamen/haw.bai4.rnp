@@ -19,7 +19,7 @@ public class ServerMAIL {
 		alive = true;
 		ServerSocket ss;
 		try {
-			ss = new ServerSocket(12345);
+			ss = new ServerSocket(11000);
 			System.out.println("[SERVER] gestartet auf: 12345");
 			Socket client = ss.accept();
 			System.out.println("[SERVER] neue Verbindung");

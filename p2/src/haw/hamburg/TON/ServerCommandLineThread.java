@@ -16,11 +16,11 @@ public class ServerCommandLineThread extends Thread {
 	@Override
 	public void run() {
 		
-		Pop3ProxyServerSide.send2ProxyConsole("CommandLineListener Gestartet");
+		Pop3ProxyServer.send2ProxyConsole("CommandLineListener Gestartet");
 		while (Pop3ProxyServer.serverAlive) {
 			try {
 				input = commandIn.readLine();
-				Pop3ProxyServerSide.send2ProxyConsole("Verarbeite: " + input + "...");
+				Pop3ProxyServer.send2ProxyConsole("Verarbeite: " + input + "...");
 				handleCommand(input);
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -31,15 +31,15 @@ public class ServerCommandLineThread extends Thread {
 	private void handleCommand(String input) {
 		switch (input) {
 		case "QUIT":
-			Pop3ProxyServerSide.send2ProxyConsole("Beende Server");
+			Pop3ProxyServer.send2ProxyConsole("Beende Server");
 			System.exit(-1);
 			break;
 		case "CLINETS":
-			Pop3ProxyServerSide.send2ProxyConsole((Pop3ProxyServer.maxVerbindungen - Pop3ProxyClientSide.buisThreadList.manyConnections()) + " Clients frei");
+			Pop3ProxyServer.send2ProxyConsole((Pop3ProxyServer.maxVerbindungen - Pop3ProxyClientSide.buisThreadList.manyConnections()) + " Clients frei");
 			break;
 			
 		default:
-			Pop3ProxyServerSide.send2ProxyConsole("Command konnte nicht gefunden werden");
+			Pop3ProxyServer.send2ProxyConsole("Command konnte nicht gefunden werden");
 			break;
 		}
 	}

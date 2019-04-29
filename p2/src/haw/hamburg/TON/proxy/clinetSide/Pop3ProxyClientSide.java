@@ -28,6 +28,8 @@ public class Pop3ProxyClientSide extends Thread {
 	@Override
 	public void run() {
 
+		Pop3ProxyServer.send2ProxyConsole("Pop3ProxyClientSide gestartet");
+		
 		try {
 
 			for (int i = 0; i < Pop3ProxyServer.maxVerbindungen; i++) {
@@ -46,7 +48,7 @@ public class Pop3ProxyClientSide extends Thread {
 				
 				int free = buisThreadList.getFree();
 				if (free!=-1) {
-					send2ProxyConsole("Neue Verbindung mit Client: " + tempClient.getInetAddress().getHostAddress() + " eingegangen.");
+					send2ProxyConsole("Neue Verbindung mit Client: " + tempClient.getInetAddress().getHostAddress() + ":" + tempClient.getPort() + " eingegangen.");
 					RoutineThreadClientSide btc = new RoutineThreadClientSide(tempClient, Pop3ProxyServer.timeout);
 					buisThreadList.set(free, btc);
 					btc.start();
