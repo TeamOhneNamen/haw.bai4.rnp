@@ -211,9 +211,9 @@ public class RoutineThreadClientSide extends Thread {
 
 	//TODO: KEIL READ
 	private void sendMSG(String msg) {
-//		out2Client.println(msg);
-		out2Client.print(msg + "\r\n");
-		out2Client.flush();
+		out2Client.println(msg);
+//		out2Client.print(msg + "\r\n");
+//		out2Client.flush();
 	}
 
 	private boolean getUsername(String msg) throws UnsupportedEncodingException, IOException {
@@ -305,13 +305,9 @@ public class RoutineThreadClientSide extends Thread {
 			Mail message = user.getMailByNumber(index);
 			if (!message.isDeleteFlag()) {
 				sendMSG("+OK " + message.getOctets() + " octets");
-				String[] msgarr = message.getMsg().split("\n");
+				String[] msgarr = message.getMsg();
 				for (int i = 0; i < msgarr.length; i++) {
-					String temp = msgarr[i];
-					if (temp.equals(" ")) {
-						temp = "";
-					}
-					sendMSG(temp);
+					sendMSG(msgarr[i]);
 
 				}
 			} else {

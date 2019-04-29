@@ -2,11 +2,11 @@ package haw.hamburg.TON;
 
 public class Mail{
 
-	String msg;
+	String[] msg;
 	int octets;
 	boolean deleteFlag;
 	
-	public Mail(String msg2, Integer octets2) {
+	public Mail(String[] msg2, Integer octets2) {
 		this.msg = msg2;
 		this.octets = octets2;
 		this.deleteFlag = false;
@@ -20,11 +20,11 @@ public class Mail{
 		this.deleteFlag = deleteFlag;
 	}
 	
-	public String getMsg() {
+	public String[] getMsg() {
 		return msg;
 	}
 
-	public void setMsg(String msg) {
+	public void setMsg(String[] msg) {
 		this.msg = msg;
 	}
 

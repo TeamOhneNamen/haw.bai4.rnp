@@ -6,7 +6,6 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 import haw.hamburg.TON.proxy.clinetSide.Pop3ProxyClientSide;
-import haw.hamburg.TON.proxy.serverSide.Pop3ProxyServerSide;
 
 public class ServerCommandLineThread extends Thread {
 

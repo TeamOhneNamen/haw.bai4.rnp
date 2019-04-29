@@ -23,7 +23,7 @@ public class Pop3ProxyServer {
 	private static int emailClinetPort = 1300;
 
 	private static int zeitueberschreitung = 30000;
-	public static int timeout = 10000;
+	public static int timeout = 3000;
 	public static int maxVerbindungen = 4;
 
 	public Pop3ProxyServer(int zeitUeberschreitung, int timeOut) {

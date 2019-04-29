@@ -3,7 +3,6 @@ package haw.hamburg.TON;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -26,7 +25,7 @@ public class BusinessThread extends Thread {
 
 	public BusinessThread(Socket client, int timeout) throws UnsupportedEncodingException, IOException {
 		this.client = client;
-		this.timeout = timeout;
+//		this.timeout = timeout;
 		
 		// hinzufügen aller Commands
 		commands.add("UPPERCASE");
@@ -303,7 +302,4 @@ public class BusinessThread extends Thread {
 		Server.printOut(msg);
 	}
 	
-	private void readLine() {
-		
-	}
 }

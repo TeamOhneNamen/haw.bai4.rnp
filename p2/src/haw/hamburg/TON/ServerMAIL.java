@@ -59,9 +59,9 @@ public class ServerMAIL {
 					out.println("Subject: Test-E-Mail");
 					out.println("Content-Type: text/plain; charset=us-ascii; format=flowed");
 					out.println("Content-Transfer-Encoding: 7bit");
-					out.println(" ");
+					out.println("");
 					out.println("ich binn es");
-					out.println(" ");
+					out.println("");
 					out.println(".");
 				
 				} else if (input.startsWith("RETR 2")) {
@@ -73,10 +73,10 @@ public class ServerMAIL {
 					out.println("Subject: Test-E-Mail");
 					out.println("Content-Type: text/plain; charset=us-ascii; format=flowed");
 					out.println("Content-Transfer-Encoding: 7bit");
-					out.println(" ");
+					out.println("");
 					out.println("ich binn es");
 					out.println("ich binn es");
-					out.println(" ");
+					out.println("");
 					out.println(".");
 
 				} else if (input.startsWith("RETR 3")) {
@@ -88,11 +88,11 @@ public class ServerMAIL {
 					out.println("Subject: Test-E-Mail");
 					out.println("Content-Type: text/plain; charset=us-ascii; format=flowed");
 					out.println("Content-Transfer-Encoding: 7bit");
-					out.println(" ");
+					out.println("");
 					out.println("ich binn es");
 					out.println("ich binn es");
 					out.println("ich binn es");
-					out.println(" ");
+					out.println("");
 					out.println(".");
 				
 				} else if (input.startsWith("RETR 4")) {
@@ -104,12 +104,12 @@ public class ServerMAIL {
 					out.println("Subject: Test-E-Mail");
 					out.println("Content-Type: text/plain; charset=us-ascii; format=flowed");
 					out.println("Content-Transfer-Encoding: 7bit");
-					out.println(" ");
+					out.println("");
 					out.println("ich binn es");
 					out.println("ich binn es");
 					out.println("ich binn es");
 					out.println("ich binn es");
-					out.println(" ");
+					out.println("");
 					out.println(".");
 				
 				} else if(input.startsWith("RETR 5")){
@@ -121,13 +121,13 @@ public class ServerMAIL {
 					out.println("Subject: Test-E-Mail");
 					out.println("Content-Type: text/plain; charset=us-ascii; format=flowed");
 					out.println("Content-Transfer-Encoding: 7bit");
-					out.println(" ");
+					out.println("");
 					out.println("ich binn es");
 					out.println("ich binn es");
 					out.println("ich binn es");
 					out.println("ich binn es");
 					out.println("ich binn es");
-					out.println(" ");
+					out.println("");
 					out.println(".");
 					
 				} else if (input.startsWith("RETR")){

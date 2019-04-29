@@ -114,18 +114,23 @@ public class RoutineThreadServerSide extends Thread {
 			/**
 			 * Zerteile die erste Zeile in seine Attribute
 			 */
-			String msg = sendRetr(j);
-			if (isOk(msg)) {
-				String msgFirstLine = msg.substring(0, msg.indexOf("\n"));
-				String msgFirstLineWithountState = msgFirstLine.substring(msgFirstLine.indexOf(" ")+1, msgFirstLine.length());
+			String[] msg = sendRetr(j);
+			if (isOk(msg[0])) {
+				String msgFirstLine = msg[0];
+				String msgFirstLineWithountState = msgFirstLine.substring(msgFirstLine.indexOf(" ")+1, msgFirstLine.length()-1);
 				
 				String octetsString = msgFirstLineWithountState.substring(msgFirstLineWithountState.indexOf(" ")+1, msgFirstLineWithountState.length());
 				int octets = Integer.valueOf(octetsString);
 				
 				// Loesche die erste Zeile von der nachricht
-				msg = msg.substring(msg.indexOf("\n")+1, msg.length());
+				String msg1[] = new String[msg.length-1];
+				for (int i = 0; i < msg1.length; i++) {
+					msg1[i] = msg[i+1];
+				}
 				
-				mailList.add(new Mail(msg, octets));
+				
+				
+				mailList.add(new Mail(msg1, octets));
 				send2ProxyConsole("Empfange Nachricht: " + j + " von POP3-Server");
 			}else {
 				send2ProxyConsole("Nachricht: " + j + " konnte nicht vom POP3-Server gelesen werden");
@@ -271,8 +276,8 @@ public class RoutineThreadServerSide extends Thread {
 //		return output;
 //	}
 	
-	private String sendRetr(int number) {
-		String response = "";
+	private String[] sendRetr(int number) {
+		ArrayList<String> response = new ArrayList<String>();
 		try {
 			// send to server "LIST" command
 			sendMSG("RETR " + number);
@@ -280,12 +285,12 @@ public class RoutineThreadServerSide extends Thread {
 			String partResponse;
 			partResponse = receveMSG();
 			if (partResponse.startsWith("-ERR")) {
-				response = partResponse;
+				response.add(partResponse);
 			}else {
-				response = partResponse+ "\n";
+				response.add(partResponse);
 				do {
 					partResponse = receveMSG();
-					response = response + partResponse+ "\n";
+					response.add(partResponse);
 					
 				} while (!partResponse.equals("."));
 			}
@@ -294,7 +299,16 @@ public class RoutineThreadServerSide extends Thread {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return response;
+		String[] mail = new String[response.size()];
+		for (int i = 0; i < mail.length; i++) {
+			mail[i] = response.get(i);
+		}
+		
+//		for (int i = 0; i < mail.length; i++) {
+//			System.out.println(mail[i]);
+//		}
+		
+		return mail;
 	}
 	
 	private String sendDele(int number) {
@@ -351,7 +365,6 @@ public class RoutineThreadServerSide extends Thread {
 	}
 
 	private boolean isOk(String input2) {
-		System.out.println(input2);
 		return input2.substring(0, 3).toUpperCase().equals("+OK");
 	}
 
