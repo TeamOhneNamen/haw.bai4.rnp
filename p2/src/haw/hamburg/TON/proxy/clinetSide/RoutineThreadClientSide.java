@@ -18,6 +18,7 @@ import haw.hamburg.TON.Exceptions.WrongUsernameException;
 
 public class RoutineThreadClientSide extends Thread {
 
+	// variabeln
 	private BufferedReader inFromClient;
 	private PrintWriter out2Client;
 	private USER user;
@@ -25,13 +26,9 @@ public class RoutineThreadClientSide extends Thread {
 	boolean clientAlive = false;
 	int timeout;
 
-	//messages
+	// messages
 	final static String USERNAME_NOT_FOUND = "-ERR USERNAME NOT EXIST";
 	final static String COMMAND_NOT_FOUND = "-ERR COMMAND NOT FOUND";
-	
-	
-	
-	String input;
 
 	public RoutineThreadClientSide(Socket userClinet, int timeout) throws IOException {
 		client = userClinet;
@@ -43,21 +40,22 @@ public class RoutineThreadClientSide extends Thread {
 
 		try {
 			inFromClient = new BufferedReader(new InputStreamReader(client.getInputStream(), StandardCharsets.UTF_8));
-			out2Client = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8), true);
+			out2Client = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8),
+					true);
 
 			client.setSoTimeout(timeout);
 			clientAlive = true;
+			// willkommensnachricht an den Clienten
 			sendMSG("+OK Welcome to Proxy");
-			while (Pop3ProxyServer.serverAlive && clientAlive) {
-				
-				try {
-					while (!anmeldung()) {
-					}
-					abholung();
-				} catch (IOException e) {
-					Pop3ProxyClientSide.send2ProxyConsole("Client: " + client.getLocalAddress() + " disconnected.");
-					clientAlive = false;
-				} 
+
+			try {
+//				Den Anmeldeversuch unendlich wiederholen
+				while (!anmeldung()) {
+				}
+				abholung();
+			} catch (IOException e) {
+				Pop3ProxyClientSide.send2ProxyConsole("Client: " + client.getLocalAddress() + " disconnected.");
+				clientAlive = false;
 			}
 		} catch (SocketException e1) {
 			sendMSG("-ERR Out Of Time");
@@ -75,20 +73,20 @@ public class RoutineThreadClientSide extends Thread {
 		String msg = getMSG();
 		while (!msg.startsWith("USER")) {
 			if (msg.startsWith("CAPA")) {
-				//Pop3ProxyClientSide.send2ProxyConsole("+OK " + msg);
+				// Pop3ProxyClientSide.send2ProxyConsole("+OK " + msg);
 				sendMSG("+OK");
 				sendMSG(".");
 				msg = getMSG();
-			}else if (msg.startsWith("AUTH")) {
+			} else if (msg.startsWith("AUTH")) {
 				Pop3ProxyClientSide.send2ProxyConsole("-ERR " + msg);
 				sendMSG("-ERR");
 				msg = getMSG();
-			}else {
+			} else {
 				Pop3ProxyClientSide.send2ProxyConsole("+OK " + msg);
 				sendMSG("+OK " + msg.toUpperCase());
 				msg = getMSG();
 			}
-			
+
 		}
 		if (getUsername(msg)) {
 			Pop3ProxyClientSide.send2ProxyConsole("anmelden von: " + user.getUsername());
@@ -114,6 +112,7 @@ public class RoutineThreadClientSide extends Thread {
 		Pop3ProxyClientSide.send2ProxyConsole("---------ARBEITEN---------");
 		while (clientAlive) {
 
+			//command interpreter
 			String msg = getMSG();
 			Pop3ProxyClientSide.send2ProxyConsole("(" + user.getUsername() + ") Verarbeite: " + msg);
 			if (msg.startsWith("LIST")) {
@@ -197,19 +196,16 @@ public class RoutineThreadClientSide extends Thread {
 		}
 	}
 
-
-	//TODO: KEIL READ
 	private String getMSG() throws UnsupportedEncodingException, IOException {
-//		char[] message = new char[255];
-//		inFromClient.read(message, 0, 255);
-//		String[] messages = new String(message, 0, 255).split("\r\n");
-//		System.out.print("getMSG(): "+ messages[0]);
-//		String messageString = messages[0];
-		String messageString = inFromClient.readLine();
+		char[] message = new char[255];
+		inFromClient.read(message, 0, 255);
+		String[] messages = new String(message, 0, 255).split("\r\n");
+		System.out.print("getMSG(): "+ messages[0]);
+		String messageString = messages[0];
+//		String messageString = inFromClient.readLine();
 		return messageString;
 	}
 
-	//TODO: KEIL READ
 	private void sendMSG(String msg) {
 		out2Client.println(msg);
 //		out2Client.print(msg + "\r\n");
@@ -219,17 +215,17 @@ public class RoutineThreadClientSide extends Thread {
 	private boolean getUsername(String msg) throws UnsupportedEncodingException, IOException {
 		if (msg.startsWith("USER")) {
 			String username = msg.substring(msg.indexOf(" ") + 1, msg.length());
-			
+
 			try {
 				user = Pop3ProxyServer.userList.getUserbyName(username);
 				return true;
-				
+
 			} catch (WrongUsernameException e) {
 				Pop3ProxyClientSide.send2ProxyConsole(USERNAME_NOT_FOUND);
 				sendMSG(USERNAME_NOT_FOUND);
 				return false;
 			}
-			
+
 		} else {
 			sendMSG(COMMAND_NOT_FOUND);
 		}
