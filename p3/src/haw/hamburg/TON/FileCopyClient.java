@@ -30,11 +30,17 @@ public class FileCopyClient extends Thread {
 	public int windowSize;
 
 	public long serverErrorRate;
-
+	
 	// -------- Variables
 	// current default timeout in nanoseconds
 	private long timeoutValue = 100000000L;
+	private long rTTValue = 0;
+	private long expRTTValue = 0;
+	private long jitterValue = 0;
+	private long x = 250;
+	private long y = x/2;
 
+	private byte[] receiveData;
 	// TODO
 
 	// Constructor
@@ -68,7 +74,17 @@ public class FileCopyClient extends Thread {
 			DatagramSocket udp_Socket = new DatagramSocket();
 			udp_Socket.connect(InetAddress.getLocalHost(), SERVER_PORT);
 			udp_Socket.send(new DatagramPacket(firstPackCpacket.getData(), firstPackCpacket.getLen()));
+			
+			
+		    DatagramPacket udpReceivePacket;
 
+		    receiveData = new byte[UDP_PACKET_SIZE];
+			udpReceivePacket = new DatagramPacket(receiveData, UDP_PACKET_SIZE);
+	        // Wait for data packet
+			udp_Socket.receive(udpReceivePacket);
+			
+			System.out.print(new String(udpReceivePacket.getData()));
+			
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -107,6 +123,10 @@ public class FileCopyClient extends Thread {
 	 * Implementation specific task performed at timeout
 	 */
 	public void timeoutTask(long seqNum) {
+		
+		timeoutValue = timeoutValue *2;
+		
+		
 		// TODO
 	}
 
@@ -116,7 +136,13 @@ public class FileCopyClient extends Thread {
 	 */
 	public void computeTimeoutValue(long sampleRTT) {
 
-		// TODO
+		// expRTTValue errechnen FOLIE 57
+		expRTTValue = (1-y) * expRTTValue + y * sampleRTT;
+		// jitter errechnen FOLIE 57
+		jitterValue = (1-x) * jitterValue + x * Math.abs(rTTValue - expRTTValue);
+		// timeout errechnen FOLIE 57
+		timeoutValue = expRTTValue + 4 * jitterValue;
+		
 	}
 
 	/**
@@ -128,7 +154,7 @@ public class FileCopyClient extends Thread {
 		 * Create first packet with seq num 0. Return value: FCPacket with (0 destPath ;
 		 * windowSize ; errorRate)
 		 */
-		String sendString = destPath + ";" + windowSize + ";" + serverErrorRate;
+		String sendString = "0;" + destPath + ";" + windowSize + ";" + serverErrorRate;
 		byte[] sendData = null;
 		try {
 			sendData = sendString.getBytes("UTF-8");
