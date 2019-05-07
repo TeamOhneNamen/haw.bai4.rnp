@@ -8,8 +8,8 @@ Autoren:
 
 import java.io.*;
 import java.net.*;
-import java.nio.file.Files;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class FileCopyClient extends Thread {
 
@@ -31,6 +31,8 @@ public class FileCopyClient extends Thread {
 
 	public long serverErrorRate;
 	
+	ReentrantLock lock = new ReentrantLock();
+	
 	// -------- Variables
 	// current default timeout in nanoseconds
 	private long timeoutValue = 100000000L;
@@ -40,7 +42,23 @@ public class FileCopyClient extends Thread {
 	private long x = 250;
 	private long y = x/2;
 
-	private byte[] receiveData;
+	private Window window; 
+	
+	private boolean allSendet = false;
+	
+	String fileContent;
+
+	int anzahlDerPackete;
+
+	long seqNr = 1;
+	
+	BufferedReader inFromFile;
+
+	UDP udp;
+
+	SendLogics sendL;
+	ReceveLogics receveL;
+	
 	// TODO
 
 	// Constructor
@@ -57,33 +75,38 @@ public class FileCopyClient extends Thread {
 	public void runFileCopyClient() {
 
 		try {
-			FCpacket firstPackCpacket = makeControlPacket();
+			
 
-			for (int j = 0; j < firstPackCpacket.getData().length; j++) {
-				System.out.print(firstPackCpacket.getData()[j] + " ");
-			}
+			window = new Window(windowSize);
+			
+			
+			udp = new UDP(InetAddress.getLocalHost(), SERVER_PORT, UDP_PACKET_SIZE);
 
 			File file = new File(sourcePath);
-
-			byte[] fileContent = Files.readAllBytes(file.toPath());
-
-			System.out.println(new String(fileContent));
+			inFromFile = new BufferedReader(new FileReader(file));
 			
-			System.out.print(new String(firstPackCpacket.getData()));
+			fileContent = makeAString();
+			
+			FCpacket firstPackCpacket = makeControlPacket();
+			System.out.println(new String(firstPackCpacket.getData()));
+			window.add(firstPackCpacket);
 
-			DatagramSocket udp_Socket = new DatagramSocket();
-			udp_Socket.connect(InetAddress.getLocalHost(), SERVER_PORT);
-			udp_Socket.send(new DatagramPacket(firstPackCpacket.getData(), firstPackCpacket.getLen()));
+			anzahlDerPackete = ((fileContent.length()/UDP_PACKET_SIZE)+1);
+			
+			feedTheWindow();
 			
 			
-		    DatagramPacket udpReceivePacket;
-
-		    receiveData = new byte[UDP_PACKET_SIZE];
-			udpReceivePacket = new DatagramPacket(receiveData, UDP_PACKET_SIZE);
-	        // Wait for data packet
-			udp_Socket.receive(udpReceivePacket);
+			sendL = new SendLogics(window, udp, this, lock);
+			sendL.start();
+			receveL = new ReceveLogics(window, udp, this, lock);
+			receveL.start();
 			
-			System.out.print(new String(udpReceivePacket.getData()));
+			
+			inFromFile.close();
+			
+			
+			
+			
 			
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
@@ -97,6 +120,68 @@ public class FileCopyClient extends Thread {
 		}
 		// TODO
 
+	}
+
+	public synchronized void feedTheWindow() {
+		lock.lock();
+		while (!window.isFull() && !allSendet) {
+//			System.out.println("Paket: " + seqNr + " von " + anzahlDerPackete + " wurde in Window geworfen");
+			if (fileContent.length()>=UDP_PACKET_SIZE) {
+				String neuesStueck = fileContent.substring(0, UDP_PACKET_SIZE);
+				window.add(new FCpacket(seqNr, neuesStueck.getBytes(), UDP_PACKET_SIZE));
+				//System.out.println("PaketInhalt: " + neuesStueck);
+				fileContent = fileContent.substring(UDP_PACKET_SIZE+1, fileContent.length());
+				
+			} else if(fileContent.equals("")){
+				allSendet = true;
+				break;
+			} else {
+				
+//				System.out.println(fileContent.length());
+				window.add(new FCpacket(seqNr, fileContent.getBytes(), fileContent.length()));
+				fileContent = "";
+				sendL.setFinished();
+				
+			}
+			seqNr++;
+		}
+		lock.unlock();
+	}
+	
+	public synchronized long getTimeoutValue() {
+		return timeoutValue;
+	}
+	
+	public synchronized Window getWindow() {
+		return window;
+	}
+	
+	public synchronized void setWindow(Window window) {
+		this.window = window;
+	}
+	
+	private String makeAString() throws IOException {
+		
+		
+		
+		String output = "";
+		
+		ArrayList<String> lines = new ArrayList<String>();
+		
+		String newLine = inFromFile.readLine();
+		while (newLine !=null) {
+			lines.add(newLine + "\n");
+			newLine = inFromFile.readLine();
+		}
+		
+		for (int i = 0; i < lines.size(); i++) {
+			output = output + lines.get(i);
+		}
+		
+		inFromFile.close();
+		
+		return output;
+		
 	}
 
 	/**
@@ -126,8 +211,27 @@ public class FileCopyClient extends Thread {
 		
 		timeoutValue = timeoutValue *2;
 		
+		sendAgain(seqNum);
 		
 		// TODO
+	}
+
+	private void sendAgain(long seqNum) {
+		
+		
+		FCpacket packet;
+		try {
+			packet = window.getBySeqNr(seqNum);
+			udp.send(packet);
+			startTimer(packet);
+		} catch (SeqNrNotInWindowException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 
 	/**
@@ -144,7 +248,7 @@ public class FileCopyClient extends Thread {
 		timeoutValue = expRTTValue + 4 * jitterValue;
 		
 	}
-
+	
 	/**
 	 *
 	 * Return value: FCPacket with (0 destPath;windowSize;errorRate)
@@ -154,7 +258,7 @@ public class FileCopyClient extends Thread {
 		 * Create first packet with seq num 0. Return value: FCPacket with (0 destPath ;
 		 * windowSize ; errorRate)
 		 */
-		String sendString = "0;" + destPath + ";" + windowSize + ";" + serverErrorRate;
+		String sendString = destPath + ";" + windowSize + ";" + serverErrorRate;
 		byte[] sendData = null;
 		try {
 			sendData = sendString.getBytes("UTF-8");
