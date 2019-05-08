@@ -37,10 +37,11 @@ public class ReceveLogics extends Thread {
 				long seq = newPack.getSeqNum();
 				lock.lock();
 				if (seq >= fileCopyClient.getWindow().get(0).getSeqNum() && seq <= fileCopyClient.getWindow().get(fileCopyClient.getWindow().size()-1).getSeqNum()) {
+					fileCopyClient.cancelTimer(fileCopyClient.getWindow().getBySeqNr(seq));
 					fileCopyClient.getWindow().getBySeqNr(seq).setValidACK(true);
 					long duration = System.nanoTime() - newPack.getTimestamp();
 					fileCopyClient.computeTimeoutValue(duration);
-					fileCopyClient.cancelTimer(fileCopyClient.getWindow().getBySeqNr(seq));
+					fileCopyClient.testOut("rtt is now: " + fileCopyClient.getTimeoutValue() + " after succ");
 				}
 				lock.unlock();
 			} catch (IOException e) {
@@ -52,12 +53,13 @@ public class ReceveLogics extends Thread {
 			lock.lock();
 			for (int i = 0; i < fileCopyClient.getWindow().size(); i++) {
 				if (fileCopyClient.getWindow().get(0).isValidACK()) {
-//					System.out.println(fileCopyClient.getWindow().get(0).getSeqNum() + " removed");
+					fileCopyClient.testOut(fileCopyClient.getWindow().get(0).getSeqNum() + " removed");
 					fileCopyClient.getWindow().remove(0);
 				}else {
 					break;
 				}
 			}
+			fileCopyClient.feedTheWindow();
 			lock.unlock();
 			
 		}

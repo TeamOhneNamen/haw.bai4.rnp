@@ -39,9 +39,7 @@ public class SendLogics extends Thread {
 						fileCopyClient.startTimer(fileCopyClient.getWindow().get(i));
 						fileCopyClient.getWindow().get(i).setTimestamp(System.nanoTime());
 						sendetUntil++;
-//						System.out.println("wurde bis: " + sendetUntil + " gesendet.");
 
-						System.out.println(window.toString());
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
