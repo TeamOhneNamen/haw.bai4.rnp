@@ -1,7 +1,13 @@
-package haw.hamburg.TON;
+package haw.hamburg.TON.LogicThreads;
 
 import java.io.IOException;
 import java.util.concurrent.locks.ReentrantLock;
+
+import haw.hamburg.TON.FileCopyClient;
+import haw.hamburg.TON.Exceptions.SeqNrNotInWindowException;
+import haw.hamburg.TON.UTIL.FCpacket;
+import haw.hamburg.TON.UTIL.UDP;
+import haw.hamburg.TON.UTIL.Window;
 
 public class ReceveLogics extends Thread {
 
@@ -32,6 +38,8 @@ public class ReceveLogics extends Thread {
 				lock.lock();
 				if (seq >= fileCopyClient.getWindow().get(0).getSeqNum() && seq <= fileCopyClient.getWindow().get(fileCopyClient.getWindow().size()-1).getSeqNum()) {
 					fileCopyClient.getWindow().getBySeqNr(seq).setValidACK(true);
+					long duration = System.nanoTime() - newPack.getTimestamp();
+					fileCopyClient.computeTimeoutValue(duration);
 					fileCopyClient.cancelTimer(fileCopyClient.getWindow().getBySeqNr(seq));
 				}
 				lock.unlock();
@@ -46,9 +54,6 @@ public class ReceveLogics extends Thread {
 				if (fileCopyClient.getWindow().get(0).isValidACK()) {
 //					System.out.println(fileCopyClient.getWindow().get(0).getSeqNum() + " removed");
 					fileCopyClient.getWindow().remove(0);
-					if (!fileCopyClient.fileContent.equals("")) {
-						fileCopyClient.feedTheWindow();
-					}
 				}else {
 					break;
 				}

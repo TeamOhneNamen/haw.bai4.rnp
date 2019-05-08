@@ -1,4 +1,4 @@
-package haw.hamburg.TON;
+package trendelenburg.de;
 
 /* FC_Timer.java
  Version 1.0

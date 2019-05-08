@@ -1,6 +1,9 @@
-package haw.hamburg.TON;
+package haw.hamburg.TON.LogicThreads;
 
 import java.util.concurrent.locks.ReentrantLock;
+
+import haw.hamburg.TON.FileCopyClient;
+import haw.hamburg.TON.UTIL.Window;
 
 public class FeedWindowThread {
 

@@ -1,4 +1,4 @@
-package haw.hamburg.TON;
+package haw.hamburg.TON.UTIL;
 
 import java.io.IOException;
 import java.net.DatagramPacket;

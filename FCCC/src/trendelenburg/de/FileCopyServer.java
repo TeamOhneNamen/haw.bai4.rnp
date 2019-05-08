@@ -1,4 +1,4 @@
-package haw.hamburg.TON;
+package trendelenburg.de;
 
 /* FileCopyServer.java
  Version 1.0
@@ -11,8 +11,6 @@ import java.net.*;
 
 import java.util.Collections;
 import java.util.LinkedList;
-
-import haw.hamburg.TON.UTIL.FCpacket;
 
 public class FileCopyServer {
 	// -------- Constants

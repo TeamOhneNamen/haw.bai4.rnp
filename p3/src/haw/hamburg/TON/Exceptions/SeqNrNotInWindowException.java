@@ -1,4 +1,4 @@
-package haw.hamburg.TON;
+package haw.hamburg.TON.Exceptions;
 
 public class SeqNrNotInWindowException extends Exception {
 	private static final long serialVersionUID = 1L;

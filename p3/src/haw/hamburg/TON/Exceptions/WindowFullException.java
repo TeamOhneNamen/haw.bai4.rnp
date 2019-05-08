@@ -1,4 +1,4 @@
-package haw.hamburg.TON;
+package haw.hamburg.TON.Exceptions;
 
 public class WindowFullException extends Exception {
 

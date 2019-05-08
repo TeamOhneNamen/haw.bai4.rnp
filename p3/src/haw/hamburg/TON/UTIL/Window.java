@@ -1,6 +1,8 @@
-package haw.hamburg.TON;
+package haw.hamburg.TON.UTIL;
 
 import java.util.ArrayList;
+
+import haw.hamburg.TON.Exceptions.SeqNrNotInWindowException;
 
 public class Window extends ArrayList<FCpacket>{
 

@@ -1,7 +1,11 @@
-package haw.hamburg.TON;
+package haw.hamburg.TON.LogicThreads;
 
 import java.io.IOException;
 import java.util.concurrent.locks.ReentrantLock;
+
+import haw.hamburg.TON.FileCopyClient;
+import haw.hamburg.TON.UTIL.UDP;
+import haw.hamburg.TON.UTIL.Window;
 
 public class SendLogics extends Thread {
 
@@ -33,6 +37,7 @@ public class SendLogics extends Thread {
 					try {
 						udp.send(fileCopyClient.getWindow().get(i));
 						fileCopyClient.startTimer(fileCopyClient.getWindow().get(i));
+						fileCopyClient.getWindow().get(i).setTimestamp(System.nanoTime());
 						sendetUntil++;
 //						System.out.println("wurde bis: " + sendetUntil + " gesendet.");
 

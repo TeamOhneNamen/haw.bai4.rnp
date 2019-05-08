@@ -1,0 +1,2 @@
+ServerAdress;ServerPort;WindowSize;Error_Rate;Duration;TimeOuts;Acknowlages;AvarageRTT;
+localhost;23000;20;5;1095;39;156;10.979151612903227;

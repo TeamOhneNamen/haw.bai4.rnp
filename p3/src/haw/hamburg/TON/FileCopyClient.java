@@ -11,6 +11,14 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
+import haw.hamburg.TON.Exceptions.SeqNrNotInWindowException;
+import haw.hamburg.TON.LogicThreads.ReceveLogics;
+import haw.hamburg.TON.LogicThreads.SendLogics;
+import haw.hamburg.TON.UTIL.FC_Timer;
+import haw.hamburg.TON.UTIL.FCpacket;
+import haw.hamburg.TON.UTIL.UDP;
+import haw.hamburg.TON.UTIL.Window;
+
 public class FileCopyClient extends Thread {
 
 	// -------- Constants
@@ -35,13 +43,12 @@ public class FileCopyClient extends Thread {
 	
 	// -------- Variables
 	// current default timeout in nanoseconds
-	private long timeoutValue = 100000000L;
-	private long rTTValue = 0;
-	private long expRTTValue = 0;
-	private long jitterValue = 0;
+	private long timeoutValue = 15*1000000;
+    private long expRtt = 15*1000000;
+    private long jitter = 20;
 	private long x = 250;
 	private long y = x/2;
-
+	
 	private Window window; 
 	
 	private boolean allSendet = false;
@@ -92,6 +99,8 @@ public class FileCopyClient extends Thread {
 			window.add(firstPackCpacket);
 
 			anzahlDerPackete = ((fileContent.length()/UDP_PACKET_SIZE)+1);
+			System.out.println(anzahlDerPackete);
+			
 			
 			feedTheWindow();
 			
@@ -126,20 +135,20 @@ public class FileCopyClient extends Thread {
 		lock.lock();
 		while (!window.isFull() && !allSendet) {
 //			System.out.println("Paket: " + seqNr + " von " + anzahlDerPackete + " wurde in Window geworfen");
-			if (fileContent.length()>=UDP_PACKET_SIZE) {
-				String neuesStueck = fileContent.substring(0, UDP_PACKET_SIZE);
-				window.add(new FCpacket(seqNr, neuesStueck.getBytes(), UDP_PACKET_SIZE));
-				//System.out.println("PaketInhalt: " + neuesStueck);
-				fileContent = fileContent.substring(UDP_PACKET_SIZE+1, fileContent.length());
-				
-			} else if(fileContent.equals("")){
+			if(this.fileContent.equals("")){
 				allSendet = true;
 				break;
-			} else {
+			} else if (this.fileContent.length()>=UDP_PACKET_SIZE) {
+				String neuesStueck = this.fileContent.substring(0, UDP_PACKET_SIZE);
+				window.add(new FCpacket(seqNr, neuesStueck.getBytes(), UDP_PACKET_SIZE));
+				//System.out.println("PaketInhalt: " + neuesStueck);
+				this.fileContent = this.fileContent.substring(UDP_PACKET_SIZE+1, this.fileContent.length());
+				
+			} else  {
 				
 //				System.out.println(fileContent.length());
-				window.add(new FCpacket(seqNr, fileContent.getBytes(), fileContent.length()));
-				fileContent = "";
+				window.add(new FCpacket(seqNr, this.fileContent.getBytes(), this.fileContent.length()));
+				this.fileContent = "";
 				sendL.setFinished();
 				
 			}
@@ -159,6 +168,10 @@ public class FileCopyClient extends Thread {
 	public synchronized void setWindow(Window window) {
 		this.window = window;
 	}
+	
+	synchronized public void setTimeoutValue(long timeoutValue) {
+        this.timeoutValue = timeoutValue;
+    }
 	
 	private String makeAString() throws IOException {
 		
@@ -189,6 +202,7 @@ public class FileCopyClient extends Thread {
 	 * Timer Operations
 	 */
 	public void startTimer(FCpacket packet) {
+		System.out.println("set: " + timeoutValue/1000000 + " ms timeout for " + packet.getSeqNum());
 		/* Create, save and start timer for the given FCpacket */
 		FC_Timer timer = new FC_Timer(timeoutValue, this, packet.getSeqNum());
 		packet.setTimer(timer);
@@ -209,13 +223,17 @@ public class FileCopyClient extends Thread {
 	 */
 	public void timeoutTask(long seqNum) {
 		
-		timeoutValue = timeoutValue *2;
+		setTimeoutValue(getTimeoutValue() *2);
 		
 		sendAgain(seqNum);
+		
+		System.out.println(seqNum + " timeouted nach: " + timeoutValue/1000000 + " milsek");
 		
 		// TODO
 	}
 
+
+	
 	private void sendAgain(long seqNum) {
 		
 		
@@ -238,26 +256,34 @@ public class FileCopyClient extends Thread {
 	 *
 	 * Computes the current timeout value (in nanoseconds)
 	 */
-	public void computeTimeoutValue(long sampleRTT) {
+	public synchronized void computeTimeoutValue(long sampleRTT) {
 
+		System.out.println("RTT: " + sampleRTT);
+		System.out.println("expRTT: " + expRtt);
+		
 		// expRTTValue errechnen FOLIE 57
-		expRTTValue = (1-y) * expRTTValue + y * sampleRTT;
+		expRtt = (long) ((1.0-y) * expRtt + y * sampleRTT);
+		
+		System.out.println("neue errechnete expRtt: " + expRtt/1000000 + " milsek");
+		
 		// jitter errechnen FOLIE 57
-		jitterValue = (1-x) * jitterValue + x * Math.abs(rTTValue - expRTTValue);
+		jitter = (long) ((1.0-x) * jitter + x * Math.abs(sampleRTT - expRtt));
+		
+		System.out.println("neue errechnete jitter: " + jitter/1000000 + " milsek");
+		
 		// timeout errechnen FOLIE 57
-		timeoutValue = expRTTValue + 4 * jitterValue;
+		setTimeoutValue(expRtt + 4 * jitter);
+		
+		System.out.println("neue errechnete TimeoutTime: " + timeoutValue/1000000 + " milsek");
 		
 	}
 	
 	/**
-	 *
 	 * Return value: FCPacket with (0 destPath;windowSize;errorRate)
 	 */
 	public FCpacket makeControlPacket() {
-		/*
-		 * Create first packet with seq num 0. Return value: FCPacket with (0 destPath ;
-		 * windowSize ; errorRate)
-		 */
+		/* Create first packet with seq num 0. Return value: FCPacket with (0 destPath ;
+		 * windowSize ; errorRate) */
 		String sendString = destPath + ";" + windowSize + ";" + serverErrorRate;
 		byte[] sendData = null;
 		try {
