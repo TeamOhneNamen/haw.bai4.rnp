@@ -10,15 +10,12 @@ import haw.hamburg.TON.UTIL.*;
 public class ReceveLogics extends Thread {
 
 	boolean copieFinished = false;
-	UDP udp;
 	FileCopyClient fileCopyClient;
 
 	ReentrantLock lock;
 	
-	public ReceveLogics(UDP udp, FileCopyClient fileCopyClient, ReentrantLock lock) {
-		this.udp = udp;
+	public ReceveLogics(FileCopyClient fileCopyClient) {
 		this.fileCopyClient = fileCopyClient;
-		this.lock = lock;
 	}
 
 	@Override
@@ -32,7 +29,7 @@ public class ReceveLogics extends Thread {
 
 			try {
 				//empfangen eines neuen Packets von Server
-				FCpacket newPack = udp.receve();
+				FCpacket newPack = fileCopyClient.getUDP().receve();
 				//ermittle SeqNr von packet
 				long seq = newPack.getSeqNum();
 				// timer beenden
@@ -40,7 +37,7 @@ public class ReceveLogics extends Thread {
 				// ausgaben
 				fileCopyClient.testOut("Paket: " + seq + " empfangen");
 
-				fileCopyClient.lock.lock();
+				fileCopyClient.getLock().lock();
 				
 				//wenn das packet in der Range des Windows liegt, wird es verarbeitet - sonst nicht 
 				if (seq >= fileCopyClient.getWindow().get(0).getSeqNum() && seq <= fileCopyClient.getWindow().get(fileCopyClient.getWindow().size()-1).getSeqNum()) {
@@ -54,7 +51,7 @@ public class ReceveLogics extends Thread {
 					fileCopyClient.computeTimeoutValue(duration);
 				}
 
-				fileCopyClient.lock.unlock();
+				fileCopyClient.getLock().unlock();
 				
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -64,7 +61,7 @@ public class ReceveLogics extends Thread {
 			}
 			
 
-			fileCopyClient.lock.lock();
+			fileCopyClient.getLock().lock();
 			
 			for (int i = 0; i < fileCopyClient.getWindow().size(); i++) {
 				if (fileCopyClient.getWindow().get(0).isValidACK()) {
@@ -79,7 +76,7 @@ public class ReceveLogics extends Thread {
 				copyfinished();
 			}
 			
-			fileCopyClient.lock.unlock();
+			fileCopyClient.getLock().unlock();
 			
 			fileCopyClient.feedTheWindow();
 			

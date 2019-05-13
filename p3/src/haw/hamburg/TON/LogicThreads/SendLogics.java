@@ -4,21 +4,17 @@ import java.io.IOException;
 import java.util.concurrent.locks.ReentrantLock;
 
 import haw.hamburg.TON.*;
-import haw.hamburg.TON.UTIL.*;
 
 public class SendLogics extends Thread {
 
 	boolean copieFinished = false;
-	UDP udp;
 	long sendetUntil = -1;
 	FileCopyClient fileCopyClient;
 
 	ReentrantLock lock;
 
-	public SendLogics(UDP udp, FileCopyClient fileCopyClient, ReentrantLock lock) {
-		this.udp = udp;
+	public SendLogics(FileCopyClient fileCopyClient) {
 		this.fileCopyClient = fileCopyClient;
-		this.lock = lock;
 	}
 
 	@Override
@@ -26,11 +22,11 @@ public class SendLogics extends Thread {
 
 		while (!copieFinished) {
 
-			fileCopyClient.lock.lock();
+			fileCopyClient.getLock().lock();
 			for (int i = 0; i < fileCopyClient.getWindow().size(); i++) {
 				if (fileCopyClient.getWindow().get(i).getSeqNum() > sendetUntil) {
 					try {
-						udp.send(fileCopyClient.getWindow().get(i));
+						fileCopyClient.getUDP().send(fileCopyClient.getWindow().get(i));
 						FileCopyClient.sends++;
 						fileCopyClient.testOut("Paket: " + fileCopyClient.getWindow().get(i).getSeqNum() + " gesendet");
 						fileCopyClient.startTimer(fileCopyClient.getWindow().get(i));
@@ -42,7 +38,7 @@ public class SendLogics extends Thread {
 				}
 			}
 
-			fileCopyClient.lock.unlock();
+			fileCopyClient.getLock().unlock();
 		}
 
 	}
