@@ -11,20 +11,17 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
-import haw.hamburg.TON.Exceptions.SeqNrNotInWindowException;
-import haw.hamburg.TON.LogicThreads.ReceveLogics;
-import haw.hamburg.TON.LogicThreads.SendLogics;
-import haw.hamburg.TON.UTIL.FC_Timer;
-import haw.hamburg.TON.UTIL.FCpacket;
-import haw.hamburg.TON.UTIL.UDP;
-import haw.hamburg.TON.UTIL.Window;
+import haw.hamburg.TON.Exceptions.*;
+import haw.hamburg.TON.LogicThreads.*;
+import haw.hamburg.TON.UTIL.*;
 
 public class FileCopyClient extends Thread {
 
 	// -------- Constants
-	public final static boolean TEST_OUTPUT_MODE = true;
+	public final static boolean TEST_OUTPUT_MODE = false;
+	public final static boolean TEST_OUTPUT_MODE_WINDOW = true;
 
-	public final int SERVER_PORT = 23000;
+	public int serverPort = 23000;
 
 	public final int UDP_PACKET_SIZE = 1008;
 
@@ -39,15 +36,18 @@ public class FileCopyClient extends Thread {
 
 	public long serverErrorRate;
 
-	ReentrantLock lock = new ReentrantLock();
+	public ReentrantLock lock = new ReentrantLock();
 
 	// -------- Variables
 	// current default timeout in nanoseconds
-	private long timeoutValue = 15 * 1000000;
+	private long timeoutValue = 150 * 1000000;
 	private long expRtt = 15 * 1000000;
 	private long jitter = 20;
 	private double x = 0.25;
 	private double y = x / 2;
+
+	public static int sends = 0;
+	static int errRate = 0;
 
 	private Window window;
 
@@ -55,7 +55,7 @@ public class FileCopyClient extends Thread {
 
 	String fileContent;
 
-	int anzahlDerPackete;
+	public int anzahlDerPackete;
 
 	long seqNr = 1;
 
@@ -69,9 +69,11 @@ public class FileCopyClient extends Thread {
 	// TODO
 
 	// Constructor
-	public FileCopyClient(String serverArg, String sourcePathArg, String destPathArg, String windowSizeArg,
+	public FileCopyClient(String serverArg, String port, String sourcePathArg, String destPathArg, String windowSizeArg,
 			String errorRateArg) {
+
 		servername = serverArg;
+		serverPort = Integer.parseInt(port);
 		sourcePath = sourcePathArg;
 		destPath = destPathArg;
 		windowSize = Integer.parseInt(windowSizeArg);
@@ -85,7 +87,7 @@ public class FileCopyClient extends Thread {
 
 			window = new Window(windowSize);
 
-			udp = new UDP(InetAddress.getLocalHost(), SERVER_PORT, UDP_PACKET_SIZE);
+			udp = new UDP(InetAddress.getByName(servername), serverPort, UDP_PACKET_SIZE);
 
 			File file = new File(sourcePath);
 			inFromFile = new BufferedReader(new FileReader(file));
@@ -93,7 +95,7 @@ public class FileCopyClient extends Thread {
 			fileContent = makeAString();
 
 			FCpacket firstPackCpacket = makeControlPacket();
-			testOut("" + new String(firstPackCpacket.getData()));
+			testOut(new String(firstPackCpacket.getData()));
 			window.add(firstPackCpacket);
 
 			anzahlDerPackete = ((fileContent.length() / UDP_PACKET_SIZE) + 1);
@@ -101,9 +103,9 @@ public class FileCopyClient extends Thread {
 
 			feedTheWindow();
 
-			sendL = new SendLogics(window, udp, this, lock);
+			sendL = new SendLogics(udp, this, lock);
 			sendL.start();
-			receveL = new ReceveLogics(window, udp, this, lock);
+			receveL = new ReceveLogics(udp, this, lock);
 			receveL.start();
 
 			inFromFile.close();
@@ -126,24 +128,24 @@ public class FileCopyClient extends Thread {
 		lock.lock();
 		while (!window.isFull() && !allSendet) {
 			testOut("Packet " + seqNr + "/" + anzahlDerPackete + " is now in Window");
-			if (this.fileContent.equals("")) {
+			if (this.fileContent.isEmpty()) {
 				allSendet = true;
 				break;
 			} else if (this.fileContent.length() >= UDP_PACKET_SIZE) {
 				String neuesStueck = this.fileContent.substring(0, UDP_PACKET_SIZE);
 				window.add(new FCpacket(seqNr, neuesStueck.getBytes(), UDP_PACKET_SIZE));
-				// System.out.println("PaketInhalt: " + neuesStueck);
 				this.fileContent = this.fileContent.substring(UDP_PACKET_SIZE + 1, this.fileContent.length());
+				testOutWindow();
 
 			} else {
-
-//				System.out.println(fileContent.length());
+				
 				window.add(new FCpacket(seqNr, this.fileContent.getBytes(), this.fileContent.length()));
 				this.fileContent = "";
-				sendL.setFinished();
+				sendL.copyfinished();
 
 			}
 			seqNr++;
+
 		}
 		lock.unlock();
 	}
@@ -190,7 +192,7 @@ public class FileCopyClient extends Thread {
 	 *
 	 * Timer Operations
 	 */
-	public synchronized void startTimer(FCpacket packet) {
+	public void startTimer(FCpacket packet) {
 		/* Create, save and start timer for the given FCpacket */
 		FC_Timer timer = new FC_Timer(timeoutValue, this, packet.getSeqNum());
 		packet.setTimer(timer);
@@ -209,16 +211,13 @@ public class FileCopyClient extends Thread {
 	 */
 	public void timeoutTask(long seqNum) {
 
+		errRate++;
+
 		testOut("Timer for Packet " + seqNum + " timeouted");
-		
-		
+
 		setTimeoutValue(getTimeoutValue() * 2);
-		
-		
 
-		testOut("rtt is now: " + getTimeoutValue() + " after miss");
 		sendAgain(seqNum);
-
 
 		// TODO
 	}
@@ -227,17 +226,16 @@ public class FileCopyClient extends Thread {
 
 		FCpacket packet;
 		try {
-			packet = window.getBySeqNr(seqNum);
+			packet = getWindow().getBySeqNr(seqNum);
 			udp.send(packet);
+			sends++;
 			startTimer(packet);
 		} catch (SeqNrNotInWindowException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 	}
 
 	/**
@@ -246,35 +244,20 @@ public class FileCopyClient extends Thread {
 	 */
 	public synchronized void computeTimeoutValue(long sampleRTT) {
 
-		System.out.println(sampleRTT);
-		
+//		System.out.println(sampleRTT);
+
 		if (expRtt < 0) {
 			expRtt = sampleRTT;
-        }
-		
-		
-		System.out.println("(1.0 - y) = " + (1.0 - y));
-		System.out.println("expRtt = " + expRtt);
-		System.out.println("y * sampleRTT = " + y * sampleRTT);
-		System.out.println("(1.0 - y) * expRtt + y * sampleRTT = " + (long) (1.0 - y) * expRtt + y * sampleRTT);
-		
+		}
+
 		// expRTTValue errechnen FOLIE 57
 		expRtt = (long) ((1.0 - y) * expRtt + y * sampleRTT);
 
-		System.out.println("(1.0 - x) = " + (1.0 - x));
-		System.out.println("jitter = " + jitter);
-		System.out.println("Math.abs(sampleRTT - expRtt) = " + Math.abs(sampleRTT - expRtt));
-		System.out.println("x * Math.abs(sampleRTT - expRtt) = " + (long) x *  Math.abs(sampleRTT - expRtt));
-		System.out.println("(1.0 - x) * jitter + x * Math.abs(sampleRTT - expRtt) = " + (long) (1.0 - x) * jitter + x * Math.abs(sampleRTT - expRtt));
-		
 		// jitter errechnen FOLIE 57
 		jitter = (long) ((1.0 - x) * jitter + x * Math.abs(sampleRTT - expRtt));
 
-		System.out.println("4 * jitter = " + 4 * jitter);
-		System.out.println("expRtt = " + expRtt);
-		System.out.println("expRtt + 4 * jitter = " + expRtt + 4 * jitter);
-		
 		// timeout errechnen FOLIE 57
+
 		setTimeoutValue(expRtt + 4 * jitter);
 
 	}
@@ -303,8 +286,14 @@ public class FileCopyClient extends Thread {
 		}
 	}
 
+	public void testOutWindow() {
+		if (TEST_OUTPUT_MODE_WINDOW) {
+			System.out.println(getWindow().toString());
+		}
+	}
+	
 	public static void main(String argv[]) throws Exception {
-		FileCopyClient myClient = new FileCopyClient(argv[0], argv[1], argv[2], argv[3], argv[4]);
+		FileCopyClient myClient = new FileCopyClient(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 		myClient.runFileCopyClient();
 	}
 
