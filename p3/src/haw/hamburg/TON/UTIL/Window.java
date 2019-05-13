@@ -1,6 +1,7 @@
 package haw.hamburg.TON.UTIL;
 
 import java.util.ArrayList;
+import java.util.concurrent.locks.ReentrantLock;
 
 import haw.hamburg.TON.Exceptions.SeqNrNotInWindowException;
 
@@ -10,10 +11,8 @@ public class Window extends ArrayList<FCpacket>{
 	
 	int windowSize;
 	
-	
 	public Window(int windowSize) {
 		this.windowSize = windowSize;
-		
 	}
 	
 	@Override
@@ -24,17 +23,22 @@ public class Window extends ArrayList<FCpacket>{
 		return false;
 	}
 	
-	public FCpacket getBySeqNr(long seqNr) throws SeqNrNotInWindowException {
+	public synchronized FCpacket getBySeqNr(long seqNr) throws SeqNrNotInWindowException {
 		for (int i = 0; i < this.size(); i++) {
 			if (this.get(i).getSeqNum() == seqNr) {
 				return this.get(i);
 			}
 		}
 		throw new SeqNrNotInWindowException(seqNr);
+		
 	}
 	
 	@Override
 	public String toString() {
+		if (this.isEmpty()) {
+			return "- finished -";
+		}
+		
 		String output = this.get(0).getSeqNum() + " - ";
 		for (int i = 0; i < this.size(); i++) {
 			if (this.get(i).isValidACK()) {
