@@ -34,7 +34,6 @@ public class UDP {
 		seqNr = packet.getSeqNum();
 		DatagramPacket data = new DatagramPacket(receiveData, dataSize);
 		udp_Socket.send(data);
-//		System.out.println("Packet: " + packet.getSeqNum() + " wurde gesendet");
 		
 	}
 	
@@ -44,7 +43,6 @@ public class UDP {
 		DatagramPacket data = new DatagramPacket(receiveData, dataSize);
 		udp_Socket.receive(data);
 		FCpacket newFCpacket = new FCpacket(data.getData(), data.getLength());
-//		System.out.println("für Packet: " + newFCpacket.getSeqNum() + " wurde das AK empfangen");
 		return newFCpacket;
 	}
 	

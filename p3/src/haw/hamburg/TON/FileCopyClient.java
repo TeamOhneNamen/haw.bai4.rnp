@@ -18,8 +18,8 @@ import haw.hamburg.TON.UTIL.*;
 public class FileCopyClient extends Thread {
 
 	// -------- Constants
-	public final static boolean TEST_OUTPUT_MODE = true;
-	public final static boolean TEST_OUTPUT_MODE_WINDOW = false;
+	public final static boolean TEST_OUTPUT_MODE = false;
+	public final static boolean TEST_OUTPUT_MODE_WINDOW = true;
 
 	public int serverPort = 23000;
 
@@ -62,6 +62,11 @@ public class FileCopyClient extends Thread {
 	SendLogics sendL;
 	ReceveLogics receveL;
 
+	@Override
+	public void run() {
+		runFileCopyClient();
+	}
+	
 	// Constructor
 	public FileCopyClient(String serverArg, String port, String sourcePathArg, String destPathArg, String windowSizeArg,
 			String errorRateArg) {
@@ -260,7 +265,7 @@ public class FileCopyClient extends Thread {
 			sends++;
 			startTimer(packet);
 		} catch (SeqNrNotInWindowException e) {
-			
+			testOut(seqNum + " alreaddy deleted");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -324,7 +329,8 @@ public class FileCopyClient extends Thread {
 	public static void main(String argv[]) throws Exception {
 		FileCopyClient myClient = new FileCopyClient(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 		long startTime = System.currentTimeMillis();
-        myClient.runFileCopyClient();
+		myClient.start();
+		myClient.join();
         long endTime = System.currentTimeMillis();
         System.out.println("Bearbeitungs-Zeit: " + (endTime - startTime));
 		
