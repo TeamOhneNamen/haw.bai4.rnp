@@ -47,6 +47,8 @@ public class FileCopyClient extends Thread {
 	// stats
 	public static int sends = 0;
 	public static int errRate = 0;
+	public static long startTime;
+	public static long endTime;
 
 	//others
 	ReentrantLock lock;

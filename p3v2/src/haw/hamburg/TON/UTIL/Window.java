@@ -31,7 +31,7 @@ public class Window {
 	public int getWindowPos() {
 		return windowPos;
 	}
-	
+
 	public int getSize() {
 		return list.size();
 
@@ -49,14 +49,16 @@ public class Window {
 		windowLock.lock();
 		for (int i = 0; i < windowSize; i++) {
 			if (windowPos + i > sendTill) {
-				if (windowPos + i <= fileCopyClient.anzahlDerPackete-1) {
-					System.out.println("sende: " + list.get(windowPos + i).getSeqNum());
+				if (windowPos + i <= fileCopyClient.anzahlDerPackete - 1) {
+					FCpacket fcp = list.get(windowPos + i);
+					fileCopyClient.testOut("send Packet: " + fcp.getSeqNum());
 					sendTill = windowPos + i;
 					fileCopyClient.sends++;
-					fileCopyClient.getUDP().send(list.get(windowPos + i));
-					fileCopyClient.startTimer(list.get(windowPos + i));
+					fileCopyClient.getUDP().send(fcp);
+					fcp.setTimestamp(System.nanoTime());
+					fileCopyClient.startTimer(fcp);
 
-					System.out.println(toString());
+					fileCopyClient.testOutWindow();
 				}
 
 			}
@@ -65,22 +67,37 @@ public class Window {
 	}
 
 	public void revece() throws IOException {
-		System.out.println("warte auf daten");
+		fileCopyClient.testOut("waiting for input");
 		FCpacket fcp = fileCopyClient.getUDP().receve();
 
 		windowLock.lock();
 		try {
 			fcp = getBySeqNum(fcp.getSeqNum());
-			getBySeqNum(fcp.getSeqNum()).setValidACK(true);
-			System.out.println(fcp.getSeqNum() + " empfangen!");
-			fileCopyClient.cancelTimer(fcp);
-			if (windowPos+1!=getSize()) {
-				while (list.get(windowPos).isValidACK()) {
-					windowPos++;
-				}
+			long duration = System.nanoTime() - fcp.getTimestamp();
+			fileCopyClient.testOut("Packet " + fcp.getSeqNum() + " took " + duration + "ns");
+			fileCopyClient.computeTimeoutValue(duration);
+			
+			//errechnung der Durchschnittlichen rtt
+			if (FileCopyClient.avgRtt==0) {
+				FileCopyClient.avgRtt = duration;
+			}else {
+				FileCopyClient.avgRtt = FileCopyClient.avgRtt + duration;
 			}
 			
-			System.out.println(toString());
+			getBySeqNum(fcp.getSeqNum()).setValidACK(true);
+			fileCopyClient.testOut("ACK for Packet " + fcp.getSeqNum() + " receved!");
+			fileCopyClient.cancelTimer(fcp);
+			if (windowPos != getSize()) {
+				try {
+					while (list.get(windowPos).isValidACK()) {
+						windowPos++;
+					}
+				} catch (IndexOutOfBoundsException e) {
+				}
+
+			}
+
+			fileCopyClient.testOutWindow();
 		} catch (SeqNrNotInWindowException e) {
 			e.printStackTrace();
 		}

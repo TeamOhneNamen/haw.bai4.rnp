@@ -23,6 +23,7 @@ public class RecevingThread extends Thread{
 				e.printStackTrace();
 			}
 		}
+		fileCopyClient.testOut("RECEVE Thread beendet");
 		System.out.println("RECEVE Thread beendet");
 	}
 	

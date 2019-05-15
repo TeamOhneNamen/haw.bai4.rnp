@@ -19,7 +19,7 @@ import haw.hamburg.TON.UTIL.*;
 public class FileCopyClient extends Thread {
 
 	// -------- Constants
-	public final static boolean TEST_OUTPUT_MODE = true;
+	public final static boolean TEST_OUTPUT_MODE = false;
 	public final static boolean TEST_OUTPUT_MODE_FILE = false;
 	public final static boolean TEST_OUTPUT_MODE_WINDOW = false;
 
@@ -49,6 +49,9 @@ public class FileCopyClient extends Thread {
 	// stats
 	public static int sends = 0;
 	public static int errRate = 0;
+	public static long avgRtt = 0;
+	public static long startTime;
+	public static long endTime;
 
 	//others
 	ReentrantLock windowLock;
@@ -122,7 +125,6 @@ public class FileCopyClient extends Thread {
 			window.setupTheWindow(fileContent);
 			
 			anzahlDerPackete = fileContent.size()+1;
-			System.out.println(anzahlDerPackete);
 			
 			udp = new UDP(InetAddress.getByName(servername), serverPort, UDP_PACKET_SIZE);
 			
@@ -169,8 +171,8 @@ public class FileCopyClient extends Thread {
 		
 		while ((line = inFromFile.readLine()) != null) {
             line=line+"\n";
-            if (inList.length()+line.length()>=UDP_PACKET_SIZE) {
-				int toLong = inList.length()+line.length()-UDP_PACKET_SIZE;
+            if (inList.length()+line.length()>=(UDP_PACKET_SIZE-8)) {
+				int toLong = inList.length()+line.length()-(UDP_PACKET_SIZE-8);
 				fileOut(""+inList.length());
 				fileOut(""+line.length());
 				fileOut(""+toLong);
@@ -238,17 +240,18 @@ public class FileCopyClient extends Thread {
 
 		testOut("Timer for Packet " + seqNum + " timeouted");
 
-//		setTimeoutValue(getTimeoutValue() * 2);
+		//set timeoutValue to timeoutValue*2
+		setTimeoutValue(getTimeoutValue() * 2);
 
 		sendAgain(seqNum);
-
-		// TODO
 	}
 
 	private synchronized void sendAgain(long seqNum) {
 
 		try {
-			udp.send(getWindow().getBySeqNum(seqNum));
+			FCpacket fcp = getWindow().getBySeqNum(seqNum);
+			udp.send(fcp);
+			startTimer(fcp);
 			sends++;
 		} catch (SeqNrNotInWindowException e) {
 			// TODO Auto-generated catch block
@@ -266,11 +269,6 @@ public class FileCopyClient extends Thread {
 	 */
 	public void computeTimeoutValue(long sampleRTT) {
 
-//		System.out.println(sampleRTT);
-
-		if (expRtt < 0) {
-			expRtt = sampleRTT;
-		}
 
 		// expRTTValue errechnen FOLIE 57
 		expRtt = (long) ((1.0 - y) * expRtt + y * sampleRTT);
@@ -318,12 +316,15 @@ public class FileCopyClient extends Thread {
 	
 	public static void main(String argv[]) throws Exception {
 		FileCopyClient myClient = new FileCopyClient(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
-		long startTime = System.currentTimeMillis();
+		startTime = System.currentTimeMillis();
 		myClient.start();
 		myClient.join();
-        long endTime = System.currentTimeMillis();
+        endTime = System.currentTimeMillis();
         System.out.println("Bearbeitungs-Zeit: " + (endTime - startTime) + " ms");
-//        System.out.println("Fehlerrate: " + errRate/sends);
+        System.out.println("Fehlerrate: " + errRate/sends);
+        System.out.println("Fehler: " + errRate);
+        System.out.println("sendungen: " + sends);
+        System.out.println("Durchschnittleiche RTT: " + avgRtt / (sends-errRate) + "ms");
 		
 	}
 	
