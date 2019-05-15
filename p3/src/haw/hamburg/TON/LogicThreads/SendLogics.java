@@ -32,19 +32,30 @@ public class SendLogics extends Thread {
 						fileCopyClient.startTimer(fileCopyClient.getWindow().get(i));
 						fileCopyClient.getWindow().get(i).setTimestamp(System.nanoTime());
 						sendetUntil = fileCopyClient.getWindow().get(i).getSeqNum();
+						System.out.println(sendetUntil +" "+ fileCopyClient.anzahlDerPackete);
+						if (sendetUntil>=fileCopyClient.anzahlDerPackete) {
+							copyfinished();
+						}
 					} catch (IOException e) {
+						System.out.println(e.getMessage());
 						e.printStackTrace();
+						fileCopyClient.getLock().unlock();
 					}
 				}
 			}
 
 			fileCopyClient.getLock().unlock();
 		}
+		
+		if (fileCopyClient.getLock().isLocked()) {
+			fileCopyClient.getLock().unlock();			
+		}
 
 	}
 
 	public void copyfinished() {
 		copieFinished = true;
+		System.out.println("SENDL BEENDET");
 	}
 
 }

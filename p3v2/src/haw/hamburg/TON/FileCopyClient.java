@@ -12,13 +12,15 @@ import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
 import haw.hamburg.TON.Exceptions.*;
-import haw.hamburg.TON.LogicThreads.*;
+import haw.hamburg.TON.Threads.RecevingThread;
+import haw.hamburg.TON.Threads.SendingThread;
 import haw.hamburg.TON.UTIL.*;
 
 public class FileCopyClient extends Thread {
 
 	// -------- Constants
 	public final static boolean TEST_OUTPUT_MODE = true;
+	public final static boolean TEST_OUTPUT_MODE_FILE = false;
 	public final static boolean TEST_OUTPUT_MODE_WINDOW = false;
 
 	public int serverPort = 23000;
@@ -35,7 +37,7 @@ public class FileCopyClient extends Thread {
 	public int windowSize;
 
 	public long serverErrorRate;
-
+	
 	// -------- Variables
 	// current default timeout in nanoseconds
 	private long timeoutValue = 150 * 1000000;
@@ -49,18 +51,16 @@ public class FileCopyClient extends Thread {
 	public static int errRate = 0;
 
 	//others
-	ReentrantLock lock;
+	ReentrantLock windowLock;
 	Window window;
 	boolean allSendet = false;
-	String fileContent;
+	ArrayList<String> fileContent = new ArrayList<String>();
 	public int anzahlDerPackete;
 	long seqNr;
 	BufferedReader inFromFile;
 	UDP udp;
 
 	// Threads
-	SendLogics sendL;
-	ReceveLogics receveL;
 
 	@Override
 	public void run() {
@@ -78,7 +78,7 @@ public class FileCopyClient extends Thread {
 		windowSize = Integer.parseInt(windowSizeArg);
 		serverErrorRate = Long.parseLong(errorRateArg);
 		seqNr = 1;
-		lock = new ReentrantLock();
+		windowLock = new ReentrantLock();
 
 	}
 	// Getter & Setter
@@ -87,8 +87,8 @@ public class FileCopyClient extends Thread {
 		return udp;
 	}
 	
-	public ReentrantLock getLock() {
-		return lock;
+	public ReentrantLock getWindowLock() {
+		return windowLock;
 	}
 	
 	public long getTimeoutValue() {
@@ -112,94 +112,46 @@ public class FileCopyClient extends Thread {
 	 * Copy the File 
 	 */
 	public void runFileCopyClient() {
-
 		try {
 
-			// create a buffer(Window)
-			setWindow(new Window(windowSize));
+			window = new Window(makeControlPacket(), windowSize, this);
 			
-			// cretes A UDP connection
-			udp = new UDP(InetAddress.getByName(servername), serverPort, UDP_PACKET_SIZE);
-
-			// get the file and setup a buffered reader 
 			File file = new File(sourcePath);
 			inFromFile = new BufferedReader(new FileReader(file), 1000000);
-			
 			fileContent = makeAString();
-
-			// add the ControllPackage to the Window
-			FCpacket firstPackCpacket = makeControlPacket();
-			window.add(firstPackCpacket);
-
+			window.setupTheWindow(fileContent);
 			
-			anzahlDerPackete = ((fileContent.length() / UDP_PACKET_SIZE) + 1);
+			anzahlDerPackete = fileContent.size()+1;
+			System.out.println(anzahlDerPackete);
 			
-			testOut("ammound of Packete: " + anzahlDerPackete);
-
-			// insert new Packages to the Wondow until the Window is fulll
-			feedTheWindow();
+			udp = new UDP(InetAddress.getByName(servername), serverPort, UDP_PACKET_SIZE);
 			
-			//start threads "sendLogics" and "receveLogics"
-			sendL = new SendLogics(this);
-			sendL.start();
-			receveL = new ReceveLogics(this);
-			receveL.start();
+			SendingThread sThread = new SendingThread(this);
+			sThread.start();
+			RecevingThread rThread = new RecevingThread(this);
+			rThread.start();
 			
-			sendL.join();
-			receveL.join();
-
-			inFromFile.close();
-
-		} catch (SocketException e) {
+			sThread.join();
+			rThread.join();
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-			System.out.println(e.getMessage());
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-			System.out.println(e.getMessage());
 		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-			System.out.println(e.getMessage());
 		}
+		
+		
 
 	}
 
 	/**
 	 * insert until the Buffer(Window) is full
 	 */
-	public void feedTheWindow() {
-		/**
-		 *  need to lock, because The ReceveLogics and SendLogics use 
-		 *  the Data maby in the same moment
-		 */
-		getLock().lock();
-		
-		while (!getWindow().isFull() && !allSendet) {
-			
-			testOut("Packet " + seqNr + "/" + anzahlDerPackete + " is now in Window");
-			
-			if (this.fileContent.isEmpty()) {
-				allSendet = true;
-				
-			} else if (this.fileContent.length() >= UDP_PACKET_SIZE) {
-				String neuesStueck = this.fileContent.substring(0, UDP_PACKET_SIZE);
-				getWindow().add(new FCpacket(seqNr, neuesStueck.getBytes(), UDP_PACKET_SIZE));
-				this.fileContent = this.fileContent.substring(UDP_PACKET_SIZE + 1, this.fileContent.length());
-				testOutWindow();
-				seqNr++;
-
-			} else {
-				
-				getWindow().add(new FCpacket(seqNr, this.fileContent.getBytes(), this.fileContent.length()));
-				this.fileContent = "";
-				seqNr++;
-
-			}
-
-		}
-		getLock().unlock();
-	}
 
 	
 	/**
@@ -209,27 +161,53 @@ public class FileCopyClient extends Thread {
 	 * @throws IOException
 	 */
 	
-	private String makeAString() throws IOException {
-
-		char[] receiveData = new char[UDP_PACKET_SIZE];
-		String output = "";
-
+	private ArrayList<String> makeAString() throws IOException {
 		ArrayList<String> lines = new ArrayList<String>();
-		inFromFile.read(receiveData, 0, UDP_PACKET_SIZE);
-		String newLine = new String(receiveData);
-		while (newLine != null) {
-			lines.add(newLine);
-			newLine = inFromFile.readLine();
+		
+		String line;
+		String inList = "";
+		
+		while ((line = inFromFile.readLine()) != null) {
+            line=line+"\n";
+            if (inList.length()+line.length()>=UDP_PACKET_SIZE) {
+				int toLong = inList.length()+line.length()-UDP_PACKET_SIZE;
+				fileOut(""+inList.length());
+				fileOut(""+line.length());
+				fileOut(""+toLong);
+				int spaceLeft = line.length()-toLong;
+				fileOut(""+spaceLeft);
+				String firstSS = line.substring(0, spaceLeft);
+				fileOut(firstSS);
+				inList = inList + firstSS;
+				lines.add(inList);
+				inList = line.substring(spaceLeft, line.length());
+				fileOut(inList);
+			}else {
+				inList = inList + line;
+			}
+            
+            
+        }
+		
+		if (inList!=null && inList!="") {
+			lines.add(inList);
 		}
-
-		for (int i = 0; i < lines.size(); i++) {
-			output = output + lines.get(i);
+		
+		for (int j = 0; j < lines.size(); j++) {
+			fileOut(lines.get(j));
+			fileOut(""+lines.get(j).length());
 		}
 
 		inFromFile.close();
 
-		return output;
+		return lines;
 
+	}
+
+	private void fileOut(String inList) {
+		if (TEST_OUTPUT_MODE_FILE) {
+			System.out.println(inList);
+		}
 	}
 
 	/**
@@ -245,6 +223,7 @@ public class FileCopyClient extends Thread {
 
 	public void cancelTimer(FCpacket packet) {
 		/* Cancel timer for the given FCpacket */
+
 		if (packet.getTimer() != null) {
 			packet.getTimer().interrupt();
 		}
@@ -268,18 +247,17 @@ public class FileCopyClient extends Thread {
 
 	private synchronized void sendAgain(long seqNum) {
 
-		FCpacket packet;
 		try {
-			packet = getWindow().getBySeqNr(seqNum);
-			udp.send(packet);
+			udp.send(getWindow().getBySeqNum(seqNum));
 			sends++;
-			startTimer(packet);
 		} catch (SeqNrNotInWindowException e) {
-			testOut(seqNum + " alreaddy deleted");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 	}
 
 	/**
@@ -332,9 +310,9 @@ public class FileCopyClient extends Thread {
 
 	public void testOutWindow() {
 		if (TEST_OUTPUT_MODE_WINDOW) {
-			getLock().lock();
+			getWindowLock().lock();
 			System.out.println(getWindow().toString());
-			getLock().unlock();
+			getWindowLock().unlock();
 		}
 	}
 	
@@ -345,7 +323,7 @@ public class FileCopyClient extends Thread {
 		myClient.join();
         long endTime = System.currentTimeMillis();
         System.out.println("Bearbeitungs-Zeit: " + (endTime - startTime) + " ms");
-        System.out.println("Fehlerrate: " + errRate/sends);
+//        System.out.println("Fehlerrate: " + errRate/sends);
 		
 	}
 	

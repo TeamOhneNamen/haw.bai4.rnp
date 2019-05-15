@@ -24,21 +24,24 @@ public class ReceveLogics extends Thread {
 		copieFinished = false;
 
 		while (!copieFinished) {
-
+			
 			try {
 				// receve package from UDP
 				FCpacket newPack = fileCopyClient.getUDP().receve();
 				// get SeqNr vrom package
 				long seq = newPack.getSeqNum();
-				// quit timer
-
-				fileCopyClient.cancelTimer(fileCopyClient.getWindow().getBySeqNr(seq));
+				
 
 				// ausgaben
 				fileCopyClient.testOut("Paket: " + seq + " empfangen");
 
+
 				fileCopyClient.getLock().lock();
 
+
+				// quit timer
+				fileCopyClient.cancelTimer(fileCopyClient.getWindow().getBySeqNr(seq));
+				
 				// wenn das packet in der Range des Windows liegt, wird es verarbeitet - sonst
 				// nicht
 				if (seq >= fileCopyClient.getWindow().get(0).getSeqNum()
@@ -57,8 +60,10 @@ public class ReceveLogics extends Thread {
 				}
 
 			} catch (SeqNrNotInWindowException e1) {
+				System.out.println(e1.getMessage());
 				e1.printStackTrace();
 			} catch (IOException e) {
+				System.out.println(e.getMessage());
 				e.printStackTrace();
 			}
 			for (int i = 0; i < fileCopyClient.getWindow().size(); i++) {
@@ -67,23 +72,31 @@ public class ReceveLogics extends Thread {
 //					fileCopyClient.testOut(fileCopyClient.getWindow().toString());
 					fileCopyClient.getWindow().remove(0);
 					fileCopyClient.testOutWindow();
+					
 				}
 			}
 
-			if (fileCopyClient.getWindow().isEmpty()) {
+			
+			if (fileCopyClient.getWindow().size()==1 && fileCopyClient.getWindow().get(0).getSeqNum()==fileCopyClient.anzahlDerPackete) {
 				copyfinished();
+				System.out.println("RECEVEL BEENDET");
 			}
-
+			
 			fileCopyClient.getLock().unlock();
 
 			fileCopyClient.feedTheWindow();
 
 		}
 
+		if (fileCopyClient.getLock().isLocked()) {
+			fileCopyClient.getLock().unlock();			
+		}
+		
 	}
 
 	public void copyfinished() {
 		copieFinished = true;
+		Thread.currentThread().interrupt();
 	}
 
 }
