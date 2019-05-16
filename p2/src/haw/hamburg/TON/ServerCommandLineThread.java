@@ -7,11 +7,24 @@ import java.nio.charset.StandardCharsets;
 
 import haw.hamburg.TON.proxy.clinetSide.Pop3ProxyClientSide;
 
+/**
+ * 
+ * @author Ferdinand Trendelenburg AND Thorben Schomacker
+ *
+ * Manage the Input in the Console from the User:
+ * commands: 
+ * CLINETS = shows how many Client-Slost are left.
+ * QUIT = stop The server
+ *
+ */
 public class ServerCommandLineThread extends Thread {
 
 	BufferedReader commandIn = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
 	String input;
 	
+	/**
+	 * runns the Thread to overwach the Console
+	 */
 	@Override
 	public void run() {
 		
@@ -27,6 +40,10 @@ public class ServerCommandLineThread extends Thread {
 		}
 	}
 
+	/**
+	 * handle Command typed in the Console
+	 * @param input -> Command
+	 */
 	private void handleCommand(String input) {
 		switch (input) {
 		case "QUIT":

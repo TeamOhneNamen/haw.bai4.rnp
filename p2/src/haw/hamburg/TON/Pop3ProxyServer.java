@@ -6,7 +6,26 @@ import java.util.Properties;
 
 import haw.hamburg.TON.proxy.clinetSide.Pop3ProxyClientSide;
 import haw.hamburg.TON.proxy.serverSide.Pop3ProxyServerSide;
-
+/**
+ * 
+ * @author Ferdinand Trendelenburg AND Thorben Schomacker
+ * 
+ * Pop3ProxyServer mail Class to start the Proxy Server
+ * Loading some ConfigDatas from "src/config.txt":
+ * USER_NAME: Usernames of POP3 EMAIL_Accounts
+ * USER_PASSWORT: Passwords of POP3 EMAIL_Accounts
+ * EMAIL_SERVER: ServerAdress of the POP3-Server of the EMAIL_Accounts
+ * EMAIL_SERVER_PORT: ServerPortrs of the POP3-Server of the EMAIL_Accounts
+ * 
+ * !!!
+ * multible User: seperate with "," like:
+ * USER_NAME = me,you
+ * USER_PASSWORT = mePass,youPass
+ * EMAIL_SERVER = server1, server2
+ * EMAIL_SERVER_PORT = serverPort1, serverPort2
+ * !!!
+ *
+ */
 public class Pop3ProxyServer {
 
 	private final static String CONFIG_FILE_PATH = "src/config.txt";
@@ -16,9 +35,6 @@ public class Pop3ProxyServer {
 	private final static String EMAIL_SERVER_PORT = "EMAIL_SERVER_PORT";
 	private final static int emailClinetPort = 1300;
 	public final static int maxVerbindungen = 4;
-//	private final static String pop3ServerAdress = "lab30.cpt.haw-hamburg.de";
-//	private final static String pop3ServerAdress = "localhost";
-//	private final static int pop3ServerPort = 11000;
 	
 	public static boolean serverAlive = false;
 	public static USERList userList = new USERList();
@@ -31,16 +47,16 @@ public class Pop3ProxyServer {
 		timeout = timeOut;
 	}
 
+	/**
+	 * main Mathod starts the Proxy server With Arguments From the ConfigFile
+	 * @param args = NOTHING
+	 */
 	public static void main(String[] args) {
-
-//		String zeitUeberschreitungString = args[0];
-//		String timeoutString = args[1];
-//		
-//		zeitueberschreitung = Integer.valueOf(zeitUeberschreitungString);
-//		timeout = Integer.valueOf(timeoutString);
 		
 		serverAlive = true;
 
+		
+		//Lese Propertys aus
 		Properties properties = retrieveProperties(CONFIG_FILE_PATH);
 		String[] usernames = properties.getProperty(USER_NAME).split(",");
 		String[] passworts = properties.getProperty(USER_PASSWORT).split(",");
@@ -66,7 +82,13 @@ public class Pop3ProxyServer {
 		
 
 	}
-	//reads properties from a config file at the given path
+	
+	/**
+	 * reads properties from a config file at the given path
+	 * @param path -> of the config file
+	 * @return properties(ACCDATA)
+	 */
+	
 	private static Properties retrieveProperties(String path) {
 		try {
 			Properties properties = new Properties();
@@ -78,6 +100,11 @@ public class Pop3ProxyServer {
 		return null;
 	}
 
+	/**
+	 * Prints The "string" on the console with [ProxyServer |CORE|]: "string"
+	 * @param string = print out Message
+	 */
+	
 	public static void send2ProxyConsole(String string) {
 		System.out.println("[ProxyServer <CORE>]: " + string);
 		

@@ -16,7 +16,19 @@ import haw.hamburg.TON.USER;
 import haw.hamburg.TON.Exceptions.MailNotExistException;
 import haw.hamburg.TON.Exceptions.WrongUsernameException;
 
+/**
+ * 
+ * @author Ferdinand Trendelenburg AND Thorben Schomacker
+ *
+ *         Deal with the CLIENTS wich are connected with the POP3-Proxy-Server
+ * 
+ *
+ */
 public class RoutineThreadClientSide extends Thread {
+
+	// Konstanten
+	final static String USERNAME_NOT_FOUND = "-ERR USERNAME NOT EXIST";
+	final static String COMMAND_NOT_FOUND = "-ERR COMMAND NOT FOUND";
 
 	// variabeln
 	private BufferedReader inFromClient;
@@ -27,21 +39,26 @@ public class RoutineThreadClientSide extends Thread {
 	int timeout;
 
 	// messages
-	final static String USERNAME_NOT_FOUND = "-ERR USERNAME NOT EXIST";
-	final static String COMMAND_NOT_FOUND = "-ERR COMMAND NOT FOUND";
 
-	public RoutineThreadClientSide(Socket userClinet, int timeout) throws IOException {
+	/**
+	 * Constructor
+	 * @param userClinet = socket connection to client to handle
+	 * @param timeout = after timeout The Server not get message from Clients will shutdown
+	 */
+	public RoutineThreadClientSide(Socket userClinet, int timeout) {
 		client = userClinet;
 		this.timeout = timeout;
 	}
 
+	/**
+	 * starts the Clientside Routine with 
+	 * "ANMELDEN" - "ARBEITEN" - "LOESCHEN" - "ABMELDEN",
+	 */
 	@Override
 	public void run() {
 
 		try {
-			
-			
-			
+
 			inFromClient = new BufferedReader(new InputStreamReader(client.getInputStream(), StandardCharsets.UTF_8));
 			out2Client = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8),
 					true);
@@ -70,15 +87,30 @@ public class RoutineThreadClientSide extends Thread {
 		}
 	}
 
+	/**
+	 * login user
+	 * PLAN:
+	 * 1. command = "USER Username" send "+OK USERNAME CORREKT" if Username exist | ELSE send "-ERR USERNAME NOT EXIST"
+	 * 2. command = "PASS Password" send "+OK PASSWORD CORREKT" if Passwort fits to Username | ELSE send "-ERR PASSWORD INCORREKT"
+	 * 
+	 * ELSE:
+	 * command = "CAPA" send "+OK" and "."
+	 * command = "QUIT" send "+OK" 
+	 * command = "AUTH" send "-ERR"
+	 * 
+	 * @return true if the Login was sucessfull
+	 * @throws UnsupportedEncodingException
+	 * @throws IOException
+	 */
 	private boolean anmeldung() throws UnsupportedEncodingException, IOException {
 		Pop3ProxyClientSide.send2ProxyConsole("---------ANMELDEN---------");
 
 		sendMSG("+OK hallo hier ist der ProxyServer");
-		
+
 		String msg = getMSG();
 		while (!msg.startsWith("USER")) {
 			if (msg.startsWith("CAPA")) {
-				 Pop3ProxyClientSide.send2ProxyConsole("+OK " + msg);
+				Pop3ProxyClientSide.send2ProxyConsole("+OK " + msg);
 				sendMSG("+OK");
 				sendMSG(".");
 				msg = getMSG();
@@ -90,8 +122,8 @@ public class RoutineThreadClientSide extends Thread {
 				Pop3ProxyClientSide.send2ProxyConsole("+OK " + msg);
 				sendMSG("+OK");
 				msg = getMSG();
-			}else {
-				
+			} else {
+
 			}
 
 		}
@@ -114,12 +146,29 @@ public class RoutineThreadClientSide extends Thread {
 
 	}
 
+	/**
+	 * send Messages to the Client if he wants some
+	 * Commands: getMSG();
+	 * 
+	 * command = LIST -> sendList()
+	 * command = LIST NUM -> sendList(NUM)
+	 * command = DELE NUM -> sendDELE(NUM)
+	 * command = RETR NUM -> sendRETR(NUM)
+	 * command = NOOP -> sendNOOP()
+	 * command = STAT -> sendSTAT()
+	 * command = RSET -> sendRSET()
+	 * command = QUIT -> sendQUIT()
+	 * ELSE -> send COMMAND NOT FOUND
+	 * 
+	 * @throws UnsupportedEncodingException
+	 * @throws IOException
+	 */
 	private void abholung() throws UnsupportedEncodingException, IOException {
 
 		Pop3ProxyClientSide.send2ProxyConsole("---------ARBEITEN---------");
 		while (clientAlive) {
 
-			//command interpreter
+			// command interpreter
 			String msg = getMSG();
 			Pop3ProxyClientSide.send2ProxyConsole("(" + user.getUsername() + ") Verarbeite: " + msg);
 			if (msg.startsWith("LIST")) {
@@ -184,6 +233,9 @@ public class RoutineThreadClientSide extends Thread {
 		}
 	}
 
+	/**
+	 * NOT IN USE
+	 */
 	private void sendUIDL() {
 		sendMSG("+OK");
 		for (int i = 0; i < user.getMailingQueue().size(); i++) {
@@ -194,6 +246,10 @@ public class RoutineThreadClientSide extends Thread {
 
 	}
 
+	/**
+	 * NOT IN USE
+	 * @param argumentNumber
+	 */
 	private void sendUIDL(int argumentNumber) {
 
 		try {
@@ -203,22 +259,38 @@ public class RoutineThreadClientSide extends Thread {
 		}
 	}
 
+	/**
+	 * recieve a Message from Client with the length of 255
+	 * @return MESSAGE
+	 * @throws UnsupportedEncodingException
+	 * @throws IOException
+	 */
 	private String getMSG() throws UnsupportedEncodingException, IOException {
 		char[] message = new char[255];
 		inFromClient.read(message, 0, 255);
 		String[] messages = new String(message, 0, 255).split("\r\n");
-//		System.out.print("getMSG(): "+ messages[0]);
 		String messageString = messages[0];
-//		String messageString = inFromClient.readLine();
 		return messageString;
 	}
 
+	/**
+	 * send a Message to Client
+	 * @param msg
+	 */
 	private void sendMSG(String msg) {
-//		out2Client.println(msg);
 		out2Client.print(msg + "\r\n");
 		out2Client.flush();
 	}
 
+	/**
+	 * get Username from Client
+	 * msg should have the Format: "USER Username" and the Username should exist in the UserList
+	 * ELSE send to Client "-ERR USERNAME NOT FOUND"
+	 * @param msg
+	 * @return true -> if the Username esist in The UserList
+	 * @throws UnsupportedEncodingException
+	 * @throws IOException
+	 */
 	private boolean getUsername(String msg) throws UnsupportedEncodingException, IOException {
 		if (msg.startsWith("USER")) {
 			String username = msg.substring(msg.indexOf(" ") + 1, msg.length());
@@ -239,6 +311,15 @@ public class RoutineThreadClientSide extends Thread {
 		return false;
 	}
 
+	/**
+	 * get Passwort from Client
+	 * msg should have the Format: "PASS Passwort" and the Passwort should fit to the the recieved Username
+	 * ELSE send to Client "-ERR USERNAME NOT FOUND"
+	 * 
+	 * @return
+	 * @throws UnsupportedEncodingException
+	 * @throws IOException
+	 */
 	private boolean checkPasswort() throws UnsupportedEncodingException, IOException {
 		String msg = getMSG();
 		String passwort;
@@ -251,12 +332,22 @@ public class RoutineThreadClientSide extends Thread {
 		return false;
 	}
 
+	/**
+	 * send NOOP sends "+OK" to the Client 
+	 */
 	private void sendNOOP() {
-
 		sendMSG("+OK");
-
 	}
 
+	/**
+	 * 
+	 * Format by Succ:
+	 * "+OK MESSAGES messages OCTETS octets"
+	 * 
+	 * 
+	 * MESSAGES = ammount of Messages saves on the Proxy
+	 * OCTETS = Size of all Messages on Bytes (Octets) 
+	 */
 	private void sendSTAT() {
 		int ammoundOfMSG = 0;
 		int ammoundOfOctets = 0;
@@ -271,6 +362,16 @@ public class RoutineThreadClientSide extends Thread {
 		sendMSG("+OK " + ammoundOfMSG + " messages (" + ammoundOfOctets + " octets)");
 	}
 
+	/**
+	 * Set DeletedFlag on the Mail with the position "index" in the MailingList to true
+	 * 
+	 * if it is allready on true send to Client: "-ERR message "index" allready deleted"
+	 * 
+	 * Format by Succ:
+	 * +OK message "index" deleted
+	 * 
+	 * @param index
+	 */
 	private void sendDELE(int index) {
 		try {
 			Mail message = user.getMailByNumber(index);
@@ -286,6 +387,10 @@ public class RoutineThreadClientSide extends Thread {
 
 	}
 
+	/**
+	 * Delete all Mail from the User, with the DeletedFlar==true
+	 * close connection to Client
+	 */
 	private void sendQUIT() {
 		int ammoundDeletet = 0;
 		for (int i = user.getMailingQueue().size() - 1; i > 0; i--) {
@@ -302,6 +407,18 @@ public class RoutineThreadClientSide extends Thread {
 		clientAlive = false;
 	}
 
+	/**
+	 * send the Mail with Position "index" to the Client if the DeleteFlag is flase
+	 * if DeleteFlag is true -> "-ERR message " + index + " already deleted"
+	 * 
+	 * Format by Succ:
+	 * "+OK "Octets" octets"
+	 * "MAIL_CONTENT"
+	 * "MAIL_CONTENT"
+	 * "."
+	 * 
+	 * @param index
+	 */
 	private void sendRETR(int index) {
 
 		try {
@@ -324,6 +441,9 @@ public class RoutineThreadClientSide extends Thread {
 
 	}
 
+	/**
+	 * set all DeletedFlags -> true
+	 */
 	private void sendRSET() {
 		int ammoundOfDeletedMSG = user.getAmmoundOfDeletedMessages();
 		int ammoundOfDeletedOctets = user.getAmmoundOfDeletedOctets();
@@ -331,6 +451,22 @@ public class RoutineThreadClientSide extends Thread {
 		sendMSG("+OK maildrop has " + ammoundOfDeletedMSG + " messages (" + ammoundOfDeletedOctets + " octets)");
 	}
 
+	/**
+	 * send a List of Mails saved on the Server to the Client
+	 * 
+	 * Format by Succ:
+	 * "+OK "MESSANGES" messages ("OCTETS" octets)"
+	 * "NUMBER_OF_MAIL SINGLE_OCTETS"
+	 * "NUMBER_OF_MAIL SINGLE_OCTETS"
+	 * "NUMBER_OF_MAIL SINGLE_OCTETS"
+	 * "."
+	 * 
+	 * MESSANGES = Ammound of Mails in the MailingList of User
+	 * OCTETS = Size of all Mails in the MailingList of User
+	 * NUMBER_OF_MAIL = Position of the Mail in The MailingList
+	 * SINGLE_OCTETS = Size of the Mail in Bytes (Octets)
+	 * 
+	 */
 	private void sendList() {
 		int ammoundOfMSG = 0;
 		int ammoundOfOctets = 0;
@@ -351,14 +487,24 @@ public class RoutineThreadClientSide extends Thread {
 		sendMSG(".");
 	}
 
-	private void sendList(int argumentNumber) {
+	/**
+	 * sends Position and Size of Mail do Client 
+	 * 
+	 * Format by Succ:
+	 * "+OK "index" OCTETS"
+	 * 
+	 * OCTETS = Size of the Mail on Position "index" in MailingList in Bytes (Octets)
+	 * 
+	 * @param index
+	 */
+	private void sendList(int index) {
 
 		try {
-			Long ammoundOfOctets = user.getMailByNumber(argumentNumber).getOctets();
-			sendMSG("+OK " + argumentNumber + " " + ammoundOfOctets);
+			Long ammoundOfOctets = user.getMailByNumber(index).getOctets();
+			sendMSG("+OK " + index + " " + ammoundOfOctets);
 
 		} catch (MailNotExistException e) {
-			sendMSG("-ERR message " + argumentNumber + " dont Exist");
+			sendMSG("-ERR message " + index + " dont Exist");
 		}
 	}
 

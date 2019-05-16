@@ -9,6 +9,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * 
+ * @author Ferdinand Trendelenburg AND Thorben Schomacker
+ *
+ *
+ */
+
 public class ServerMAIL {
 	
 	static BufferedReader in;
