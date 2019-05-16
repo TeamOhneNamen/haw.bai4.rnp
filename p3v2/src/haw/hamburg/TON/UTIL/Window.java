@@ -41,10 +41,10 @@ public class Window {
 
 	}
 
-	public void setupTheWindow(ArrayList<String> list) {
+	public void setupTheWindow(ArrayList<byte[]> list) {
 		int seqNum = 1;
 		for (int i = 0; i < list.size(); i++) {
-			this.list.add(new FCpacket(seqNum, list.get(i).getBytes(), list.get(i).length()));
+			this.list.add(new FCpacket(seqNum, list.get(i), list.get(i).length));
 			seqNum++;
 		}
 	}

@@ -7,6 +7,7 @@ Autoren:
 */
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -67,7 +68,7 @@ public class FileCopyClient extends Thread {
 	ReentrantLock windowLock;
 	Window window;
 	boolean allSendet = false;
-	ArrayList<String> fileContent = new ArrayList<String>();
+	ArrayList<byte[]> fileContent = new ArrayList<byte[]>();
 	public int anzahlDerPackete;
 	long seqNr;
 	BufferedReader inFromFile;
@@ -130,7 +131,7 @@ public class FileCopyClient extends Thread {
 			window = new Window(makeControlPacket(), windowSize, this);
 			
 			File file = new File(sourcePath);
-			inFromFile = new BufferedReader(new FileReader(file), 1000000);
+			inFromFile = new BufferedReader(new FileReader(file));
 			fileContent = makeAString();
 			window.setupTheWindow(fileContent);
 			
@@ -173,44 +174,18 @@ public class FileCopyClient extends Thread {
 	 * @throws IOException
 	 */
 	
-	private ArrayList<String> makeAString() throws IOException {
-		ArrayList<String> lines = new ArrayList<String>();
+	private ArrayList<byte[]> makeAString() throws IOException {
+		ArrayList<byte[]> lines = new ArrayList<byte[]>();
 		
-		String line;
-		String inList = "";
+		FileInputStream fis = new FileInputStream(new File(destPath));
 		
-		while ((line = inFromFile.readLine()) != null) {
-            line=line+"\n";
-            if (inList.length()+line.length()>=(UDP_PACKET_SIZE-8)) {
-				int toLong = inList.length()+line.length()-(UDP_PACKET_SIZE-8);
-				fileOut(""+inList.length());
-				fileOut(""+line.length());
-				fileOut(""+toLong);
-				int spaceLeft = line.length()-toLong;
-				fileOut(""+spaceLeft);
-				String firstSS = line.substring(0, spaceLeft);
-				fileOut(firstSS);
-				inList = inList + firstSS;
-				lines.add(inList);
-				inList = line.substring(spaceLeft, line.length());
-				fileOut(inList);
-			}else {
-				inList = inList + line;
-			}
-            
-            
-        }
+		byte line[] = new byte[UDP_PACKET_SIZE-8];
 		
-		if (inList!=null && inList!="") {
-			lines.add(inList);
+		int check = fis.read(line);
+		while (check!=-1) {
+			lines.add(line);
+			check = fis.read(line);
 		}
-		
-		for (int j = 0; j < lines.size(); j++) {
-			fileOut(lines.get(j));
-			fileOut(""+lines.get(j).length());
-		}
-
-		inFromFile.close();
 
 		return lines;
 
@@ -251,7 +226,7 @@ public class FileCopyClient extends Thread {
 		testOut("Timer for Packet " + seqNum + " timeouted");
 
 		//set timeoutValue to timeoutValue*2
-		setTimeoutValue(getTimeoutValue() * 2);
+//		setTimeoutValue(getTimeoutValue() * 2);
 
 		sendAgain(seqNum);
 	}
