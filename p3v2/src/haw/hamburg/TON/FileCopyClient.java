@@ -59,7 +59,7 @@ public class FileCopyClient extends Thread {
 
 	// stats
 	public static int sends = 0;
-	public static int errRate = 0;
+	public static int resends = 0;
 	public static long avgRtt = 0;
 	public static long startTime;
 	public static long endTime;
@@ -170,7 +170,6 @@ public class FileCopyClient extends Thread {
 	 * @return output
 	 * @throws IOException
 	 */
-<<<<<<< HEAD
 	
 	private ArrayList<byte[]> makeAString() throws IOException {
 		ArrayList<byte[]> lines = new ArrayList<byte[]>();
@@ -184,46 +183,6 @@ public class FileCopyClient extends Thread {
 			lines.add(line);
 			check = fis.read(line);
 		}
-=======
-
-	private ArrayList<String> makeAString() throws IOException {
-		ArrayList<String> lines = new ArrayList<String>();
-
-		String line;
-		String inList = "";
-
-		while ((line = inFromFile.readLine()) != null) {
-			line = line + "\n";
-			if (inList.length() + line.length() >= (UDP_PACKET_SIZE - 8)) {
-				int toLong = inList.length() + line.length() - (UDP_PACKET_SIZE - 8);
-				fileOut("" + inList.length());
-				fileOut("" + line.length());
-				fileOut("" + toLong);
-				int spaceLeft = line.length() - toLong;
-				fileOut("" + spaceLeft);
-				String firstSS = line.substring(0, spaceLeft);
-				fileOut(firstSS);
-				inList = inList + firstSS;
-				lines.add(inList);
-				inList = line.substring(spaceLeft, line.length());
-				fileOut(inList);
-			} else {
-				inList = inList + line;
-			}
-
-		}
-
-		if (inList != null && inList != "") {
-			lines.add(inList);
-		}
-
-		for (int j = 0; j < lines.size(); j++) {
-			fileOut(lines.get(j));
-			fileOut("" + lines.get(j).length());
-		}
-
-		inFromFile.close();
->>>>>>> ae49398d050bb99069397dac89be5855f9eed470
 
 		return lines;
 
@@ -261,13 +220,8 @@ public class FileCopyClient extends Thread {
 		
 		testOut("Timer for Packet " + seqNum + " timeouted");
 
-<<<<<<< HEAD
-		//set timeoutValue to timeoutValue*2
-//		setTimeoutValue(getTimeoutValue() * 2);
-=======
 		// set timeoutValue to timeoutValue*2
 		setTimeoutValue(getTimeoutValue() * 2);
->>>>>>> ae49398d050bb99069397dac89be5855f9eed470
 
 		sendAgain(seqNum);
 	}
