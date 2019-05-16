@@ -47,7 +47,7 @@ public class FileCopyClient extends Thread {
 	public int windowSize;
 
 	public long serverErrorRate;
-	
+
 	// -------- Variables
 	// current default timeout in nanoseconds
 	private long timeoutValue = 15 * 1000000L;
@@ -58,12 +58,12 @@ public class FileCopyClient extends Thread {
 
 	// stats
 	public static int sends = 0;
-	public static int errRate = 0;
+	public static int resends = 0;
 	public static long avgRtt = 0;
 	public static long startTime;
 	public static long endTime;
 
-	//others
+	// others
 	ReentrantLock windowLock;
 	Window window;
 	boolean allSendet = false;
@@ -79,7 +79,7 @@ public class FileCopyClient extends Thread {
 	public void run() {
 		runFileCopyClient();
 	}
-	
+
 	// Constructor
 	public FileCopyClient(String serverArg, String port, String sourcePathArg, String destPathArg, String windowSizeArg,
 			String errorRateArg) {
@@ -95,15 +95,15 @@ public class FileCopyClient extends Thread {
 
 	}
 	// Getter & Setter
-	
+
 	public UDP getUDP() {
 		return udp;
 	}
-	
+
 	public ReentrantLock getWindowLock() {
 		return windowLock;
 	}
-	
+
 	public long getTimeoutValue() {
 		return timeoutValue;
 	}
@@ -119,33 +119,32 @@ public class FileCopyClient extends Thread {
 	public void setWindow(Window window) {
 		this.window = window;
 	}
-	
-	
+
 	/**
-	 * Copy the File 
+	 * Copy the File
 	 */
 	public void runFileCopyClient() {
 		try {
 
 			window = new Window(makeControlPacket(), windowSize, this);
-			
+
 			File file = new File(sourcePath);
 			inFromFile = new BufferedReader(new FileReader(file), 1000000);
 			fileContent = makeAString();
 			window.setupTheWindow(fileContent);
-			
-			anzahlDerPackete = fileContent.size()+1;
-			
+
+			anzahlDerPackete = fileContent.size() + 1;
+
 			udp = new UDP(InetAddress.getByName(servername), serverPort, UDP_PACKET_SIZE);
-			
+
 			SendingThread sThread = new SendingThread(this);
 			sThread.start();
 			RecevingThread rThread = new RecevingThread(this);
 			rThread.start();
-			
+
 			sThread.join();
 			rThread.join();
-			
+
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -156,8 +155,6 @@ public class FileCopyClient extends Thread {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
 
 	}
 
@@ -165,49 +162,47 @@ public class FileCopyClient extends Thread {
 	 * insert until the Buffer(Window) is full
 	 */
 
-	
 	/**
 	 * makes a String from the FileContent by using readLind() from BufferedReader
 	 * 
 	 * @return output
 	 * @throws IOException
 	 */
-	
+
 	private ArrayList<String> makeAString() throws IOException {
 		ArrayList<String> lines = new ArrayList<String>();
-		
+
 		String line;
 		String inList = "";
-		
+
 		while ((line = inFromFile.readLine()) != null) {
-            line=line+"\n";
-            if (inList.length()+line.length()>=(UDP_PACKET_SIZE-8)) {
-				int toLong = inList.length()+line.length()-(UDP_PACKET_SIZE-8);
-				fileOut(""+inList.length());
-				fileOut(""+line.length());
-				fileOut(""+toLong);
-				int spaceLeft = line.length()-toLong;
-				fileOut(""+spaceLeft);
+			line = line + "\n";
+			if (inList.length() + line.length() >= (UDP_PACKET_SIZE - 8)) {
+				int toLong = inList.length() + line.length() - (UDP_PACKET_SIZE - 8);
+				fileOut("" + inList.length());
+				fileOut("" + line.length());
+				fileOut("" + toLong);
+				int spaceLeft = line.length() - toLong;
+				fileOut("" + spaceLeft);
 				String firstSS = line.substring(0, spaceLeft);
 				fileOut(firstSS);
 				inList = inList + firstSS;
 				lines.add(inList);
 				inList = line.substring(spaceLeft, line.length());
 				fileOut(inList);
-			}else {
+			} else {
 				inList = inList + line;
 			}
-            
-            
-        }
-		
-		if (inList!=null && inList!="") {
+
+		}
+
+		if (inList != null && inList != "") {
 			lines.add(inList);
 		}
-		
+
 		for (int j = 0; j < lines.size(); j++) {
 			fileOut(lines.get(j));
-			fileOut(""+lines.get(j).length());
+			fileOut("" + lines.get(j).length());
 		}
 
 		inFromFile.close();
@@ -246,11 +241,11 @@ public class FileCopyClient extends Thread {
 	 */
 	public synchronized void timeoutTask(long seqNum) {
 
-		errRate++;
+		resends++;
 
 		testOut("Timer for Packet " + seqNum + " timeouted");
 
-		//set timeoutValue to timeoutValue*2
+		// set timeoutValue to timeoutValue*2
 		setTimeoutValue(getTimeoutValue() * 2);
 
 		sendAgain(seqNum);
@@ -271,7 +266,7 @@ public class FileCopyClient extends Thread {
 			e.printStackTrace();
 		}
 		windowLock.unlock();
-		
+
 	}
 
 	/**
@@ -279,7 +274,6 @@ public class FileCopyClient extends Thread {
 	 * Computes the current timeout value (in nanoseconds)
 	 */
 	public void computeTimeoutValue(long sampleRTT) {
-
 
 		// expRTTValue errechnen FOLIE 57
 		expRtt = (long) ((1.0 - y) * expRtt + y * sampleRTT);
@@ -324,39 +318,39 @@ public class FileCopyClient extends Thread {
 			getWindowLock().unlock();
 		}
 	}
-	
+
 	public static void main(String argv[]) throws Exception {
 		FileCopyClient myClient;
-		if(argv.length == 0) {
-		myClient = new FileCopyClient("localhost","23000",
-		        "C:\\Users\\Thorben\\git\\haw.bai4.rnp\\p3\\src\\haw\\hamburg\\TON\\testdoc.txt",
-		        "C:\\Users\\Thorben\\git\\haw.bai4.rnp\\p3\\src\\haw\\hamburg\\TON\\dest\\testdoccopy.txt", 
-		        "10",
-		        "0");}
-		else {
+		if (argv.length == 0) {
+			myClient = new FileCopyClient("localhost", "23000",
+					"C:\\Users\\Thorben\\git\\haw.bai4.rnp\\p3\\src\\haw\\hamburg\\TON\\testdoc.txt",
+					"C:\\Users\\Thorben\\git\\haw.bai4.rnp\\p3\\src\\haw\\hamburg\\TON\\dest\\testdoccopy.txt", "10",
+					"0");
+		} else {
 			myClient = new FileCopyClient(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 		}
 		startTime = System.nanoTime();
 		myClient.start();
 		myClient.join();
-        endTime = System.nanoTime();
-        System.out.println(FileCopyServer.csvColumns.get(0) + (endTime - startTime) + "ns");
-        System.out.println(FileCopyServer.csvColumns.get(0) + errRate/sends);
-        System.out.println(FileCopyServer.csvColumns.get(0) + errRate);
-        System.out.println(FileCopyServer.csvColumns.get(0) + sends);
-        System.out.println(FileCopyServer.csvColumns.get(0) + avgRtt / (sends-errRate) + "ns");
-        FileWriter writer = new FileWriter(FileCopyServer.csvFilePath, true);
-        CSVUtils.writeLine(writer, 
-        		Arrays.asList(
-        				String.valueOf((endTime - startTime) + "ns"), 
-        				String.valueOf(errRate/sends), 
-        				String.valueOf(errRate), 
-        				String.valueOf(sends),
-        				String.valueOf(avgRtt / (sends-errRate) + "ns")));
-        writer.flush();
-        writer.close();
-		
+		endTime = System.nanoTime();
+		// vorgaben von keil
+		double gesamtuebbertragungszeit = (endTime - startTime);
+		int wiederholteUebertragungen = resends;
+		int empfangeneBestaetigungen = sends - resends ;
+		double mittelwertRTTallerACKs = avgRtt / (sends - resends);
+		//
+		double fehlerrate = resends / sends;
+		System.out.println(FileCopyServer.csvColumns.get(0) + " " + gesamtuebbertragungszeit + "ns");
+		System.out.println("Fehlerrate" + fehlerrate);
+		System.out.println(FileCopyServer.csvColumns.get(1) + " " + wiederholteUebertragungen);
+		System.out.println("Sendungen " + sends);
+		System.out.println(FileCopyServer.csvColumns.get(3) + " " + mittelwertRTTallerACKs + " ns");
+		FileWriter writer = new FileWriter(FileCopyServer.csvFilePath, true);
+		CSVUtils.writeLine(writer, Arrays.asList(String.valueOf(gesamtuebbertragungszeit),
+				String.valueOf(wiederholteUebertragungen), String.valueOf(empfangeneBestaetigungen), String.valueOf(mittelwertRTTallerACKs)));
+		writer.flush();
+		writer.close();
+
 	}
-	
 
 }

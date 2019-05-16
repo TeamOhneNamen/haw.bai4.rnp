@@ -12,7 +12,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -54,24 +53,25 @@ public class FileCopyServer {
 
 	// csv-log
 	// is accessed by all clients connnecting to this server
-	final static String csvFilePath = "C:\\Users\\Thorben\\git\\haw.bai4.rnp\\p3v2\\src\\haw\\hamburg\\TON\\log" + "\\log";
-	final static List<String> csvColumns = Arrays.asList("Bearbeitungs-Zeit", "Fehlerrate", "Fehler", "sendungen",
-			"Durchschnittleiche RTT");
+	final static String csvFilePath = "C:\\Users\\Thorben\\git\\haw.bai4.rnp\\p3v2\\src\\haw\\hamburg\\TON\\log"
+			+ "\\log";
+	final static List<String> csvColumns = Arrays.asList("gesamtuebbertragungszeit", "wiederholteUebertragungen",
+			"empfangeneBestaetigungen", "mittelwertRTTallerACKs");
 
 	// Constructor
 	public FileCopyServer() {
 		try {
-			FileWriter writer = new FileWriter(FileCopyServer.csvFilePath,false);
-	        CSVUtils.writeLine(writer, csvColumns);
-	        writer.flush();
-	        writer.close();
-	        System.out.println("Log created at: " + FileCopyServer.csvFilePath);
+			FileWriter writer = new FileWriter(FileCopyServer.csvFilePath, false);
+			CSVUtils.writeLine(writer, csvColumns);
+			writer.flush();
+			writer.close();
+			System.out.println("Log created at: " + FileCopyServer.csvFilePath);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		receiveData = new byte[UDP_PACKET_SIZE];
 		recBuf = new LinkedList<FCpacket>();
-		
+
 	}
 
 	public void runFileCopyServer() throws IOException {

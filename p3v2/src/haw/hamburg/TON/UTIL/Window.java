@@ -49,6 +49,7 @@ public class Window {
 		}
 	}
 
+	@SuppressWarnings("static-access")
 	public void send() throws IOException {
 		fileCopyClient.getWindowLock().lock();
 		for (int i = 0; i < windowSize; i++) {
