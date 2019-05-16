@@ -1,0 +1,23 @@
+@startuml
+    Client-->Pop3ProxyServer:Versuche TCP Serververbindung herzustellen
+    Pop3ProxyServer-->Client:Verbindung akzeptiert
+    ==ANMELDEN==
+    Client->Pop3ProxyServer:USER <username>
+    Pop3ProxyServer->Client:+OK
+    Client->Pop3ProxyServer:PASS <password>
+    Pop3ProxyServer->Client:+OK
+    ==ARBEITEN==
+    Client->Pop3ProxyServer:STAT
+    Pop3ProxyServer->Client:+OK 2 12345
+    Client->Pop3ProxyServer:RETR 1
+    Pop3ProxyServer->Client:+OK  1 240\n Date: Mon, 18 Oct 2004 04:11:45 +0200\nFrom: Someone <someone@example.com>\nTo: wiki@example.com\nSubject: Test-E-Mail\nContent-Type: text/plain; charset=us-ascii; format=flowed\nich binn es\n.
+    Client->Pop3ProxyServer:RETR 2
+    Pop3ProxyServer->Client:+OK  2 240\n Date: Mon, 18 Oct 2004 04:11:45 +0200\nFrom: Someone <someone@example.com>\nTo: wiki@example.com\nSubject: Test-E-Mail\nContent-Type: text/plain; charset=us-ascii; format=flowed\nich binn es\n.
+    ==LOESCHEN==
+    Client->Pop3ProxyServer:DELE 1
+    Client->Pop3ProxyServer:DELE 2
+    ==ABMELDEN==
+    Client->Pop3ProxyServer: QUIT
+    Client->Pop3ProxyServer: +OK 2 messages deleted
+    ==ENDE==
+@enduml

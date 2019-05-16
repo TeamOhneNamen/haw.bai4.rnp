@@ -39,6 +39,9 @@ public class RoutineThreadClientSide extends Thread {
 	public void run() {
 
 		try {
+			
+			
+			
 			inFromClient = new BufferedReader(new InputStreamReader(client.getInputStream(), StandardCharsets.UTF_8));
 			out2Client = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8),
 					true);
@@ -70,10 +73,12 @@ public class RoutineThreadClientSide extends Thread {
 	private boolean anmeldung() throws UnsupportedEncodingException, IOException {
 		Pop3ProxyClientSide.send2ProxyConsole("---------ANMELDEN---------");
 
+		sendMSG("+OK hallo hier ist der ProxyServer");
+		
 		String msg = getMSG();
 		while (!msg.startsWith("USER")) {
 			if (msg.startsWith("CAPA")) {
-				// Pop3ProxyClientSide.send2ProxyConsole("+OK " + msg);
+				 Pop3ProxyClientSide.send2ProxyConsole("+OK " + msg);
 				sendMSG("+OK");
 				sendMSG(".");
 				msg = getMSG();
@@ -81,10 +86,12 @@ public class RoutineThreadClientSide extends Thread {
 				Pop3ProxyClientSide.send2ProxyConsole("-ERR " + msg);
 				sendMSG("-ERR");
 				msg = getMSG();
-			} else {
+			} else if (msg.startsWith("QUIT")) {
 				Pop3ProxyClientSide.send2ProxyConsole("+OK " + msg);
-				sendMSG("+OK " + msg.toUpperCase());
+				sendMSG("+OK");
 				msg = getMSG();
+			}else {
+				
 			}
 
 		}
@@ -200,16 +207,16 @@ public class RoutineThreadClientSide extends Thread {
 		char[] message = new char[255];
 		inFromClient.read(message, 0, 255);
 		String[] messages = new String(message, 0, 255).split("\r\n");
-		System.out.print("getMSG(): "+ messages[0]);
+//		System.out.print("getMSG(): "+ messages[0]);
 		String messageString = messages[0];
 //		String messageString = inFromClient.readLine();
 		return messageString;
 	}
 
 	private void sendMSG(String msg) {
-		out2Client.println(msg);
-//		out2Client.print(msg + "\r\n");
-//		out2Client.flush();
+//		out2Client.println(msg);
+		out2Client.print(msg + "\r\n");
+		out2Client.flush();
 	}
 
 	private boolean getUsername(String msg) throws UnsupportedEncodingException, IOException {
@@ -347,7 +354,7 @@ public class RoutineThreadClientSide extends Thread {
 	private void sendList(int argumentNumber) {
 
 		try {
-			int ammoundOfOctets = user.getMailByNumber(argumentNumber).getOctets();
+			Long ammoundOfOctets = user.getMailByNumber(argumentNumber).getOctets();
 			sendMSG("+OK " + argumentNumber + " " + ammoundOfOctets);
 
 		} catch (MailNotExistException e) {

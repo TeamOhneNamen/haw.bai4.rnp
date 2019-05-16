@@ -9,22 +9,20 @@ import haw.hamburg.TON.proxy.serverSide.Pop3ProxyServerSide;
 
 public class Pop3ProxyServer {
 
-	public static boolean serverAlive = false;
-	public static USERList userList = new USERList();
-
-//	private static String pop3ServerAdress = "lab30.cpt.haw-hamburg.de";
-	private static String pop3ServerAdress = "localhost";
-	private static int pop3ServerPort = 11000;
-
 	private final static String CONFIG_FILE_PATH = "src/config.txt";
 	private final static String USER_NAME = "USER_NAME";
 	private final static String USER_PASSWORT = "USER_PASSWORT";
-
-	private static int emailClinetPort = 1300;
-
-	private static int zeitueberschreitung = 30000;
+	private final static int emailClinetPort = 1300;
+	public final static int maxVerbindungen = 4;
+	private final static String pop3ServerAdress = "lab30.cpt.haw-hamburg.de";
+//	private final static String pop3ServerAdress = "localhost";
+	private final static int pop3ServerPort = 11000;
+	
+	public static boolean serverAlive = false;
+	public static USERList userList = new USERList();
 	public static int timeout = 3000;
-	public static int maxVerbindungen = 4;
+	private static int zeitueberschreitung = 30000;
+
 
 	public Pop3ProxyServer(int zeitUeberschreitung, int timeOut) {
 		zeitueberschreitung = zeitUeberschreitung;

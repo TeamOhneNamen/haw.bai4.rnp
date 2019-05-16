@@ -60,7 +60,7 @@ public class USER {
 		int ammound = 0;
 		for (int i = 0; i < mailingQueue.size(); i++) {
 			if(mailingQueue.get(i).isDeleteFlag()){
-				ammound =+ mailingQueue.get(i).getOctets();
+				ammound =(int) + mailingQueue.get(i).getOctets();
 			}
 		}
 		return ammound;

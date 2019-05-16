@@ -1,0 +1,25 @@
+@startuml
+loop alle 30 Sekunden
+    Pop3ProxyServer-->Pop3Server:Versuche TCP Serververbindung herzustellen
+    Pop3Server-->Pop3ProxyServer:Verbindung akzeptiert
+    ==ANMELDEN==
+    Pop3ProxyServer->Pop3Server:USER <username>
+    Pop3Server->Pop3ProxyServer:+OK
+    Pop3ProxyServer->Pop3Server:PASS <password>
+    Pop3Server->Pop3ProxyServer:+OK
+    ==ARBEITEN==
+    Pop3ProxyServer->Pop3Server:STAT
+    Pop3Server->Pop3ProxyServer:+OK 2 12345
+    Pop3ProxyServer->Pop3Server:RETR 1
+    Pop3Server->Pop3ProxyServer:+OK  1 240\n Date: Mon, 18 Oct 2004 04:11:45 +0200\nFrom: Someone <someone@example.com>\nTo: wiki@example.com\nSubject: Test-E-Mail\nContent-Type: text/plain; charset=us-ascii; format=flowed\nich binn es\n.
+    Pop3ProxyServer->Pop3Server:RETR 2
+    Pop3Server->Pop3ProxyServer:+OK  2 240\n Date: Mon, 18 Oct 2004 04:11:45 +0200\nFrom: Someone <someone@example.com>\nTo: wiki@example.com\nSubject: Test-E-Mail\nContent-Type: text/plain; charset=us-ascii; format=flowed\nich binn es\n.
+    ==LOESCHEN==
+    Pop3ProxyServer->Pop3Server:DELE 1
+    Pop3ProxyServer->Pop3Server:DELE 2
+    ==ABMELDEN==
+    Pop3ProxyServer->Pop3Server: QUIT
+    Pop3ProxyServer->Pop3Server: +OK 2 messages deleted
+    ==ENDE==
+end
+@enduml
