@@ -19,7 +19,7 @@ import haw.hamburg.TON.UTIL.*;
 public class FileCopyClient extends Thread {
 
 	// -------- Constants
-	public final static boolean TEST_OUTPUT_MODE = false;
+	public final static boolean TEST_OUTPUT_MODE = true;
 	public final static boolean TEST_OUTPUT_MODE_FILE = false;
 	public final static boolean TEST_OUTPUT_MODE_WINDOW = false;
 
@@ -40,8 +40,8 @@ public class FileCopyClient extends Thread {
 	
 	// -------- Variables
 	// current default timeout in nanoseconds
-	private long timeoutValue = 150 * 1000000;
-	private long expRtt = 15 * 1000000;
+	private long timeoutValue = 15 * 1000000L;
+	private long expRtt = 15 * 1000000L;
 	private long jitter = 20;
 	private double x = 0.25;
 	private double y = x / 2;
@@ -246,20 +246,21 @@ public class FileCopyClient extends Thread {
 		sendAgain(seqNum);
 	}
 
-	private synchronized void sendAgain(long seqNum) {
+	private void sendAgain(long seqNum) {
 
+		windowLock.lock();
 		try {
 			FCpacket fcp = getWindow().getBySeqNum(seqNum);
 			udp.send(fcp);
 			startTimer(fcp);
 			sends++;
 		} catch (SeqNrNotInWindowException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println(e.getSeqNr() + " is not in window: " + getWindow().toString());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		windowLock.unlock();
 		
 	}
 
@@ -316,15 +317,15 @@ public class FileCopyClient extends Thread {
 	
 	public static void main(String argv[]) throws Exception {
 		FileCopyClient myClient = new FileCopyClient(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
-		startTime = System.currentTimeMillis();
+		startTime = System.nanoTime();
 		myClient.start();
 		myClient.join();
-        endTime = System.currentTimeMillis();
-        System.out.println("Bearbeitungs-Zeit: " + (endTime - startTime) + " ms");
+        endTime = System.nanoTime();
+        System.out.println("Bearbeitungs-Zeit: " + (endTime - startTime) + "ns");
         System.out.println("Fehlerrate: " + errRate/sends);
         System.out.println("Fehler: " + errRate);
         System.out.println("sendungen: " + sends);
-        System.out.println("Durchschnittleiche RTT: " + avgRtt / (sends-errRate) + "ms");
+        System.out.println("Durchschnittleiche RTT: " + avgRtt / (sends-errRate) + "ns");
 		
 	}
 	

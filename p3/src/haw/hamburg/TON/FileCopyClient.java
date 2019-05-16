@@ -261,7 +261,7 @@ public class FileCopyClient extends Thread {
 
 		testOut("Timer for Packet " + seqNum + " timeouted");
 
-//		setTimeoutValue(getTimeoutValue() * 2);
+		setTimeoutValue(getTimeoutValue() * 2);
 
 		sendAgain(seqNum);
 

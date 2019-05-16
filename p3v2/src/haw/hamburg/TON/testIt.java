@@ -6,12 +6,22 @@ public class testIt {
 
 	static long avgTime;
 
+	static FileCopyClient fcc;
+	static FileCopyClient fcc1;
+	static FileCopyClient fcc2;
+	static FileCopyClient fcc3;
+	static FileCopyClient fcc4;
+	static FileCopyClient fcc5;
+	
 	public static void main(String[] args) {
+		System.out.println("for ErrRate: 10, WindowSize 10");
 		doIt("C:\\1 from\\testdoc.txt", "C:\\2 to\\testdoccopy.txt", 10, 10);
-		doIt("C:\\1 from\\testdoc.txt", "C:\\2 to\\testdoccopy.txt", 100, 10);
-		doIt("C:\\1 from\\testdoc.txt", "C:\\2 to\\testdoccopy.txt", 1000, 10);
+		System.out.println("for ErrRate: 10, WindowSize 20");
+		doIt("C:\\1 from\\testdoc.txt", "C:\\2 to\\testdoccopy.txt", 20, 10);
+		System.out.println("for ErrRate: 10, WindowSize 30");
+		doIt("C:\\1 from\\testdoc.txt", "C:\\2 to\\testdoccopy.txt", 30, 10);
+		
 		System.out.println("now ErrRate");
-
 		doIt("C:\\1 from\\testdoc.txt", "C:\\2 to\\testdoccopy.txt", 10, 0);
 		doIt("C:\\1 from\\testdoc.txt", "C:\\2 to\\testdoccopy.txt", 10, 2);
 		doIt("C:\\1 from\\testdoc.txt", "C:\\2 to\\testdoccopy.txt", 10, 5);
@@ -24,8 +34,7 @@ public class testIt {
 
 		try {
 
-			FileCopyClient fcc = new FileCopyClient("localhost", "23000", from,
-					to, "" + windowSize, "" + errRate);
+			fcc = new FileCopyClient("localhost", "23000", from, to, "" + windowSize, "" + errRate);
 			long startTime = System.nanoTime();
 			fcc.runFileCopyClient();
 			fcc.join();
@@ -35,8 +44,7 @@ public class testIt {
 
 			Thread.sleep(WAIT_DURATION);
 
-			FileCopyClient fcc1 = new FileCopyClient("localhost", "23000", "C:\\1 from\\testdoc.txt",
-					"C:\\2 to\\testdoccopy.txt", "10", "10");
+			fcc1 = new FileCopyClient("localhost", "23000", from, to, "" + windowSize, "" + errRate);
 			startTime = System.nanoTime();
 			fcc1.runFileCopyClient();
 			fcc1.join();
@@ -46,8 +54,7 @@ public class testIt {
 
 			Thread.sleep(WAIT_DURATION);
 
-			FileCopyClient fcc2 = new FileCopyClient("localhost", "23000", "C:\\1 from\\testdoc.txt",
-					"C:\\2 to\\testdoccopy.txt", "10", "10");
+			fcc2 = new FileCopyClient("localhost", "23000", from, to, "" + windowSize, "" + errRate);
 			startTime = System.nanoTime();
 			fcc2.runFileCopyClient();
 			fcc2.join();
@@ -57,8 +64,7 @@ public class testIt {
 
 			Thread.sleep(WAIT_DURATION);
 
-			FileCopyClient fcc3 = new FileCopyClient("localhost", "23000", "C:\\1 from\\testdoc.txt",
-					"C:\\2 to\\testdoccopy.txt", "10", "10");
+			fcc3 = new FileCopyClient("localhost", "23000", from, to, "" + windowSize, "" + errRate);
 			startTime = System.nanoTime();
 			fcc3.runFileCopyClient();
 			fcc3.join();
@@ -68,8 +74,7 @@ public class testIt {
 
 			Thread.sleep(WAIT_DURATION);
 
-			FileCopyClient fcc4 = new FileCopyClient("localhost", "23000", "C:\\1 from\\testdoc.txt",
-					"C:\\2 to\\testdoccopy.txt", "10", "10");
+			fcc4 = new FileCopyClient("localhost", "23000", from, to, "" + windowSize, "" + errRate);
 			startTime = System.nanoTime();
 			fcc4.runFileCopyClient();
 			fcc4.join();
@@ -79,8 +84,7 @@ public class testIt {
 
 			Thread.sleep(WAIT_DURATION);
 
-			FileCopyClient fcc5 = new FileCopyClient("localhost", "23000", "C:\\1 from\\testdoc.txt",
-					"C:\\2 to\\testdoccopy.txt", "10", "10");
+			fcc5 = new FileCopyClient("localhost", "23000", from, to, "" + windowSize, "" + errRate);
 			startTime = System.nanoTime();
 			fcc5.runFileCopyClient();
 			fcc5.join();
