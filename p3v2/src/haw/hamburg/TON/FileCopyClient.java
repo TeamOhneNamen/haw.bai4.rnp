@@ -5,21 +5,31 @@ Version 0.1 - Muss ergaenzt werden!!
 Praktikum 3 Rechnernetze BAI4 HAW Hamburg
 Autoren:
 */
-
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 
-import haw.hamburg.TON.Exceptions.*;
+import haw.hamburg.TON.Exceptions.SeqNrNotInWindowException;
 import haw.hamburg.TON.Threads.RecevingThread;
 import haw.hamburg.TON.Threads.SendingThread;
-import haw.hamburg.TON.UTIL.*;
+import haw.hamburg.TON.UTIL.CSVUtils;
+import haw.hamburg.TON.UTIL.FC_Timer;
+import haw.hamburg.TON.UTIL.FCpacket;
+import haw.hamburg.TON.UTIL.UDP;
+import haw.hamburg.TON.UTIL.Window;
 
 public class FileCopyClient extends Thread {
 
 	// -------- Constants
-	public final static boolean TEST_OUTPUT_MODE = true;
+	public final static boolean TEST_OUTPUT_MODE = false;
 	public final static boolean TEST_OUTPUT_MODE_FILE = false;
 	public final static boolean TEST_OUTPUT_MODE_WINDOW = false;
 
@@ -316,16 +326,35 @@ public class FileCopyClient extends Thread {
 	}
 	
 	public static void main(String argv[]) throws Exception {
-		FileCopyClient myClient = new FileCopyClient(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
+		FileCopyClient myClient;
+		if(argv.length == 0) {
+		myClient = new FileCopyClient("localhost","23000",
+		        "C:\\Users\\Thorben\\git\\haw.bai4.rnp\\p3\\src\\haw\\hamburg\\TON\\testdoc.txt",
+		        "C:\\Users\\Thorben\\git\\haw.bai4.rnp\\p3\\src\\haw\\hamburg\\TON\\dest\\testdoccopy.txt", 
+		        "10",
+		        "0");}
+		else {
+			myClient = new FileCopyClient(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
+		}
 		startTime = System.nanoTime();
 		myClient.start();
 		myClient.join();
         endTime = System.nanoTime();
-        System.out.println("Bearbeitungs-Zeit: " + (endTime - startTime) + "ns");
-        System.out.println("Fehlerrate: " + errRate/sends);
-        System.out.println("Fehler: " + errRate);
-        System.out.println("sendungen: " + sends);
-        System.out.println("Durchschnittleiche RTT: " + avgRtt / (sends-errRate) + "ns");
+        System.out.println(FileCopyServer.csvColumns.get(0) + (endTime - startTime) + "ns");
+        System.out.println(FileCopyServer.csvColumns.get(0) + errRate/sends);
+        System.out.println(FileCopyServer.csvColumns.get(0) + errRate);
+        System.out.println(FileCopyServer.csvColumns.get(0) + sends);
+        System.out.println(FileCopyServer.csvColumns.get(0) + avgRtt / (sends-errRate) + "ns");
+        FileWriter writer = new FileWriter(FileCopyServer.csvFilePath, true);
+        CSVUtils.writeLine(writer, 
+        		Arrays.asList(
+        				String.valueOf((endTime - startTime) + "ns"), 
+        				String.valueOf(errRate/sends), 
+        				String.valueOf(errRate), 
+        				String.valueOf(sends),
+        				String.valueOf(avgRtt / (sends-errRate) + "ns")));
+        writer.flush();
+        writer.close();
 		
 	}
 	
