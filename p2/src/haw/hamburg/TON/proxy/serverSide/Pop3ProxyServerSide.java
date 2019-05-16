@@ -38,10 +38,9 @@ public class Pop3ProxyServerSide extends Thread{
 		Pop3ProxyServer.send2ProxyConsole("Pop3ProxyServerSide gestartet");
 		
 		try {
-			server = new Socket(internetAdresse, port);
-			send2ProxyConsole("Verbindung zu: >" + internetAdresse + ":" + port + "< hergestellt.");
+			
 
-			RoutineThreadServerSide routineThread = new RoutineThreadServerSide(zeitabstand, server);
+			RoutineThreadServerSide routineThread = new RoutineThreadServerSide(zeitabstand, internetAdresse, port);
 			routineThread.start();
 			
 		} catch (IOException e) {

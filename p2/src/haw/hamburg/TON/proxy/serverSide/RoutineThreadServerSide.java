@@ -29,55 +29,70 @@ public class RoutineThreadServerSide extends Thread {
 	int ammound = 0;
 
 	Socket server;
+	String addr;
+	int port;
 
 	String input;
 
-	public RoutineThreadServerSide(int zeitabstand, Socket tempServer) throws IOException {
-		server = tempServer;
+	public RoutineThreadServerSide(int zeitabstand, String addr, int port) throws IOException {
+		this.addr = addr;
+		this.port = port;
 		ZEITABSTAND = zeitabstand;
-		inFromServer = new BufferedReader(new InputStreamReader(server.getInputStream(), StandardCharsets.UTF_8));
-		out2Server = new PrintWriter(new OutputStreamWriter(server.getOutputStream(), StandardCharsets.UTF_8), true);
 
 	}
 
 	@Override
 	public void run() {
 
-		try {
-			Pop3ProxyServerSide.send2ProxyConsole(receveMSG());
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
+		
+
+		
+		
 		clientAlive = true;
 		while (clientAlive) {
 
-			for (int i = 0; i < Pop3ProxyServer.userList.size(); i++) {
-				String user = Pop3ProxyServer.userList.get(i).getUsername();
-				String pass = Pop3ProxyServer.userList.get(i).getPasswort();
+			try {
+				server = new Socket(addr, port);
+				send2ProxyConsole("Verbindung zu: >" + addr + ":" + port + "< hergestellt.");
 
-				ArrayList<Mail> mailList = Pop3ProxyServer.userList.get(i).getMailingQueue();
+				inFromServer = new BufferedReader(new InputStreamReader(server.getInputStream(), StandardCharsets.UTF_8));
+				out2Server = new PrintWriter(new OutputStreamWriter(server.getOutputStream(), StandardCharsets.UTF_8), true);
+			
+					Pop3ProxyServerSide.send2ProxyConsole(receveMSG());
+				
+			
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			String user = Pop3ProxyServer.userList.get(0).getUsername();
+			String pass = Pop3ProxyServer.userList.get(0).getPasswort();
+			
+			ArrayList<Mail> mailList = Pop3ProxyServer.userList.get(0).getMailingQueue();
 
-				Pop3ProxyServerSide.send2ProxyConsole("--------ANMELDEN----------");
-				anmeldung(user, pass);
-				Pop3ProxyServerSide.send2ProxyConsole("--------ARBEITEN----------");
-				abholung(mailList);
-				Pop3ProxyServerSide.send2ProxyConsole("--------LOESCHEN----------");
-				loeschung(mailList);
-				Pop3ProxyServerSide.send2ProxyConsole("--------ABMELDEN----------");
-//				sendQuit();
-				Pop3ProxyServerSide.send2ProxyConsole("----------ENDE------------");
+			
+			Pop3ProxyServerSide.send2ProxyConsole("--------ANMELDEN----------");
+			anmeldung(user, pass);
+
+			Pop3ProxyServerSide.send2ProxyConsole("--------ARBEITEN----------");
+			abholung(mailList);
+			Pop3ProxyServerSide.send2ProxyConsole("--------LOESCHEN----------");
+			loeschung(mailList);
+			Pop3ProxyServerSide.send2ProxyConsole("--------ABMELDEN----------");
+			sendQuit();
+			Pop3ProxyServerSide.send2ProxyConsole("----------ENDE------------");
 
 //				for (int j = 0; j < mailList.size() ; j++) {
 //					System.out.println(mailList.get(j).getMsg());
 //				}
-
-			}
 			try {
 				Thread.sleep(ZEITABSTAND);
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 			}
 		}
+		
 	}
 
 	private void anmeldung(String user, String pass) {
@@ -113,13 +128,10 @@ public class RoutineThreadServerSide extends Thread {
 			 */
 			String[] msg = sendRetr(j);
 			if (isOk(msg[0])) {
-				String msgFirstLine = msg[0];
-				String msgFirstLineWithountState = msgFirstLine.substring(msgFirstLine.indexOf(" ") + 1,
-						msgFirstLine.length() - 1);
 
-				String octetsString = msgFirstLineWithountState.substring(msgFirstLineWithountState.indexOf(" ") + 1,
-						msgFirstLineWithountState.length());
-				int octets = Integer.valueOf(octetsString);
+				String msgFirstLine = msg[0];
+				String octetsString = msgFirstLine.split(" ")[1];
+				long octets = Long.valueOf(octetsString);
 
 				// Loesche die erste Zeile von der nachricht
 				String msg1[] = new String[msg.length - 1];
@@ -148,10 +160,10 @@ public class RoutineThreadServerSide extends Thread {
 		send2ProxyConsole("Loesche " + ammound + " mails.");
 		for (int j = 0; j < ammound; j++) {
 
-			sendDele(j);
+			sendDele(j+1);
 			send2ProxyConsole("loesche mail: " + (j + 1) + " von POP3-Server");
-		}
 
+		}
 	}
 
 	private void sendUser(String username) throws WrongUsernameException {
@@ -159,13 +171,16 @@ public class RoutineThreadServerSide extends Thread {
 		try {
 			// send to server "USER" command
 			sendMSG("USER " + username);
-			String response = receveMSG();
-			if (!isOk(response)) {
+			System.out.println("USER " + username);
 
-				throw new WrongUsernameException();
-			} else {
+			String response = receveMSG();
+			System.out.println("USER response " + response);
+			
+			if (isOk(response)) {
 				send2ProxyConsole("User: " + username + " ist vorhanden!");
 				user = username;
+			} else {
+				throw new WrongUsernameException();
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -206,6 +221,7 @@ public class RoutineThreadServerSide extends Thread {
 			// send to server "STAT" command
 			sendMSG("STAT");
 			response = receveMSG();
+			System.out.println("sendStat-response: " + response);
 			if (isOk(response)) {
 				String flag = response.substring(0, response.indexOf(" "));
 				String rest = response.substring(response.indexOf(" ") + 1, response.length());
@@ -332,26 +348,25 @@ public class RoutineThreadServerSide extends Thread {
 //		}
 //	}
 
-//	private void sendQuit() {
-//			// send to server "LIST" command
-//			
-//			try {
-//				sendMSG("QUIT");
-//				if(isOk(receveMSG())) {
-//					Pop3ProxyClientSide.send2ProxyConsole("User: " + user + " erfolgreich abgemeldet"); 
-//				}else {
-//					Pop3ProxyClientSide.send2ProxyConsole("Fehler beim abmelden von: " + user); 
-//				}
-//			} catch (IOException e) {
-//				Pop3ProxyClientSide.send2ProxyConsole("Fehler beim abmelden von: " + user); 
-//			} catch (NullPointerException e) {
-//				Pop3ProxyClientSide.send2ProxyConsole("Nullpointer Exception");
-//			}
-//		
-//	}
+	private void sendQuit() {
+		try {
+			sendMSG("QUIT");
+			if (isOk(receveMSG())) {
+				send2ProxyConsole("User: " + user + " erfolgreich abgemeldet");
+			} else {
+				send2ProxyConsole("Fehler beim abmelden von: " + user);
+			}
+			
+		} catch (IOException e) {
+			send2ProxyConsole("Fehler beim abmelden von: " + user);
+		} catch (NullPointerException e) {
+			e.printStackTrace();
+		}
+	}
 
 	private void sendMSG(String msg) {
-		out2Server.println(msg);
+		out2Server.print(msg + "\r\n");
+		out2Server.flush();
 	}
 
 	private String receveMSG() throws IOException {
@@ -359,7 +374,11 @@ public class RoutineThreadServerSide extends Thread {
 	}
 
 	private boolean isOk(String input2) {
-		return input2.substring(0, 3).toUpperCase().equals("+OK");
+		if (input2 == null) {
+			return false;
+		} else {
+			return input2.substring(0, 3).toUpperCase().equals("+OK");
+		}
 	}
 
 	private void send2ProxyConsole(String msg) {

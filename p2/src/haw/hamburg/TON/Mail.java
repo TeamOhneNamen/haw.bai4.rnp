@@ -3,10 +3,10 @@ package haw.hamburg.TON;
 public class Mail{
 
 	String[] msg;
-	int octets;
+	Long octets;
 	boolean deleteFlag;
 	
-	public Mail(String[] msg2, Integer octets2) {
+	public Mail(String[] msg2, Long octets2) {
 		this.msg = msg2;
 		this.octets = octets2;
 		this.deleteFlag = false;
@@ -28,11 +28,11 @@ public class Mail{
 		this.msg = msg;
 	}
 
-	public int getOctets() {
+	public Long getOctets() {
 		return octets;
 	}
 
-	public void setOctets(int octets) {
+	public void setOctets(Long octets) {
 		this.octets = octets;
 	}
 	

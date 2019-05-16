@@ -39,6 +39,9 @@ public class RoutineThreadClientSide extends Thread {
 	public void run() {
 
 		try {
+			
+			
+			
 			inFromClient = new BufferedReader(new InputStreamReader(client.getInputStream(), StandardCharsets.UTF_8));
 			out2Client = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8),
 					true);
@@ -70,6 +73,8 @@ public class RoutineThreadClientSide extends Thread {
 	private boolean anmeldung() throws UnsupportedEncodingException, IOException {
 		Pop3ProxyClientSide.send2ProxyConsole("---------ANMELDEN---------");
 
+		sendMSG("+OK hallo hier ist der ProxyServer");
+		
 		String msg = getMSG();
 		while (!msg.startsWith("USER")) {
 			if (msg.startsWith("CAPA")) {
@@ -81,10 +86,12 @@ public class RoutineThreadClientSide extends Thread {
 				Pop3ProxyClientSide.send2ProxyConsole("-ERR " + msg);
 				sendMSG("-ERR");
 				msg = getMSG();
-			} else {
-				Pop3ProxyClientSide.send2ProxyConsole("-ERR " + msg);
-				sendMSG("-ERR " + msg.toUpperCase());
+			} else if (msg.startsWith("QUIT")) {
+				Pop3ProxyClientSide.send2ProxyConsole("+OK " + msg);
+				sendMSG("+OK");
 				msg = getMSG();
+			}else {
+				
 			}
 
 		}
@@ -347,7 +354,7 @@ public class RoutineThreadClientSide extends Thread {
 	private void sendList(int argumentNumber) {
 
 		try {
-			int ammoundOfOctets = user.getMailByNumber(argumentNumber).getOctets();
+			Long ammoundOfOctets = user.getMailByNumber(argumentNumber).getOctets();
 			sendMSG("+OK " + argumentNumber + " " + ammoundOfOctets);
 
 		} catch (MailNotExistException e) {
