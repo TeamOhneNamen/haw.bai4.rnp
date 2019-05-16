@@ -12,11 +12,13 @@ public class Pop3ProxyServer {
 	private final static String CONFIG_FILE_PATH = "src/config.txt";
 	private final static String USER_NAME = "USER_NAME";
 	private final static String USER_PASSWORT = "USER_PASSWORT";
+	private final static String EMAIL_SERVER = "EMAIL_SERVER";
+	private final static String EMAIL_SERVER_PORT = "EMAIL_SERVER_PORT";
 	private final static int emailClinetPort = 1300;
 	public final static int maxVerbindungen = 4;
-	private final static String pop3ServerAdress = "lab30.cpt.haw-hamburg.de";
+//	private final static String pop3ServerAdress = "lab30.cpt.haw-hamburg.de";
 //	private final static String pop3ServerAdress = "localhost";
-	private final static int pop3ServerPort = 11000;
+//	private final static int pop3ServerPort = 11000;
 	
 	public static boolean serverAlive = false;
 	public static USERList userList = new USERList();
@@ -40,16 +42,28 @@ public class Pop3ProxyServer {
 		serverAlive = true;
 
 		Properties properties = retrieveProperties(CONFIG_FILE_PATH);
-		userList.add(new USER(properties.getProperty(USER_NAME), properties.getProperty(USER_PASSWORT)));
+		String[] usernames = properties.getProperty(USER_NAME).split(",");
+		String[] passworts = properties.getProperty(USER_PASSWORT).split(",");
+		String[] emailservers = properties.getProperty(EMAIL_SERVER).split(",");
+		String[] emailserverports = properties.getProperty(EMAIL_SERVER_PORT).split(",");
+		
+		for (int i = 0; i < usernames.length; i++) {
+			userList.add(new USER(usernames[i], passworts[i], emailservers[i], emailserverports[i]));
+		}
+		
+		for (int i = 0; i < userList.size(); i++) {
+			System.out.println(userList.get(i).getUsername() + " " + userList.get(i).getPasswort() + " " + userList.get(i).getServerName() + " " + userList.get(i).getServerPort());
+		}
 		
 		new ServerCommandLineThread().start();
 
 		Pop3ProxyClientSide popClinetSide = new Pop3ProxyClientSide(emailClinetPort);
 		popClinetSide.start();
 
-		Pop3ProxyServerSide popServerSide = new Pop3ProxyServerSide(pop3ServerAdress, pop3ServerPort,
-				zeitueberschreitung);
-		popServerSide.start();
+		for (int i = 0; i < userList.size(); i++) {
+			new Pop3ProxyServerSide(zeitueberschreitung, userList.get(i)).start();
+		}
+		
 
 	}
 	//reads properties from a config file at the given path

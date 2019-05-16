@@ -20,7 +20,7 @@ public class ServerMAIL {
 		ServerSocket ss;
 		try {
 			ss = new ServerSocket(11000);
-			System.out.println("[SERVER] gestartet auf: 12345");
+			System.out.println("[SERVER] gestartet auf: 11000");
 			Socket client = ss.accept();
 			System.out.println("[SERVER] neue Verbindung");
 

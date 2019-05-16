@@ -4,14 +4,13 @@ import java.io.IOException;
 import java.net.Socket;
 
 import haw.hamburg.TON.Pop3ProxyServer;
+import haw.hamburg.TON.USER;
 
 public class Pop3ProxyServerSide extends Thread{
 	
-	private int port = 11000; 
-	private String internetAdresse = "localhost"; 
-	
-	private Socket server;
 	private int zeitabstand = 30000;
+	
+	private USER user;
 	
 	
 	public Pop3ProxyServerSide() {
@@ -21,15 +20,10 @@ public class Pop3ProxyServerSide extends Thread{
 		zeitabstand = zeitAbstand;
 	}
 	
-	public Pop3ProxyServerSide(int internetPort, int zeitAbstand) {
-		port = internetPort;
-		zeitabstand = zeitAbstand;
-	}
-
-	public Pop3ProxyServerSide(String internetadres, int internetPort, int zeitAbstand) {
-		port = internetPort;
-		zeitabstand = zeitAbstand;
-		internetAdresse = internetadres;
+	public Pop3ProxyServerSide(int zeitueberschreitung, USER user) {
+		zeitabstand = zeitueberschreitung;
+		this.user = user;
+		
 	}
 
 	@Override
@@ -40,7 +34,7 @@ public class Pop3ProxyServerSide extends Thread{
 		try {
 			
 
-			RoutineThreadServerSide routineThread = new RoutineThreadServerSide(zeitabstand, internetAdresse, port);
+			RoutineThreadServerSide routineThread = new RoutineThreadServerSide(zeitabstand, user);
 			routineThread.start();
 			
 		} catch (IOException e) {
@@ -49,8 +43,8 @@ public class Pop3ProxyServerSide extends Thread{
 		}
 	}
 	
-	public static void send2ProxyConsole(String msg) {
-		System.out.println("[ProxyServer <ServerSide>]: " + msg);
+	public static void send2ProxyConsole(String msg, String user2) {
+		System.out.println("[ProxyServer <ServerSide: "+user2+">]: " + msg);
 	}
 	
 	

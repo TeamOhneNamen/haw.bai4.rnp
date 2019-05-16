@@ -8,6 +8,24 @@ public class USER {
 
 	private String username;
 	private String passwort;
+	private String serverName; 
+	private String serverPort;
+
+	public String getServerName() {
+		return serverName;
+	}
+
+	public void setServerName(String serverName) {
+		this.serverName = serverName;
+	}
+
+	public String getServerPort() {
+		return serverPort;
+	}
+
+	public void setServerPort(String serverPort) {
+		this.serverPort = serverPort;
+	}
 
 	private ArrayList<Mail> mailingQueue = new ArrayList<Mail>();
 	
@@ -19,9 +37,11 @@ public class USER {
 		this.mailingQueue = mailingQueue;
 	}
 
-	public USER(String username, String passwort) {
+	public USER(String username, String passwort, String serverName, String serverPort) {
 		this.username = username;
 		this.passwort = passwort;
+		this.serverName = serverName;
+		this.serverPort = serverPort;
 	}
 
 	public String getUsername() {
