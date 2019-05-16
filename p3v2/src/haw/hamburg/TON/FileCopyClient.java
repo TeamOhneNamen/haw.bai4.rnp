@@ -240,9 +240,7 @@ public class FileCopyClient extends Thread {
 	 * Try to send Packet again and multiply the Timeout with 2
 	 */
 	public synchronized void timeoutTask(long seqNum) {
-
-		resends++;
-
+		
 		testOut("Timer for Packet " + seqNum + " timeouted");
 
 		// set timeoutValue to timeoutValue*2
@@ -259,6 +257,7 @@ public class FileCopyClient extends Thread {
 			udp.send(fcp);
 			startTimer(fcp);
 			sends++;
+			resends++;
 		} catch (SeqNrNotInWindowException e) {
 			System.out.println(e.getSeqNr() + " is not in window: " + getWindow().toString());
 		} catch (IOException e) {
@@ -323,8 +322,8 @@ public class FileCopyClient extends Thread {
 		FileCopyClient myClient;
 		if (argv.length == 0) {
 			myClient = new FileCopyClient("localhost", "23000",
-					"C:\\Users\\Thorben\\git\\haw.bai4.rnp\\p3\\src\\haw\\hamburg\\TON\\testdoc.txt",
-					"C:\\Users\\Thorben\\git\\haw.bai4.rnp\\p3\\src\\haw\\hamburg\\TON\\dest\\testdoccopy.txt", "10",
+					"../p3/src/haw/hamburg/TON/testdoc.txt",
+					"../p3/src/haw/hamburg/TON/dest/testdoccopy.txt", "10",
 					"0");
 		} else {
 			myClient = new FileCopyClient(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);

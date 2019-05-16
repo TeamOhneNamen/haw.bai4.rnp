@@ -49,7 +49,6 @@ public class Window {
 		}
 	}
 
-	@SuppressWarnings("static-access")
 	public void send() throws IOException {
 		fileCopyClient.getWindowLock().lock();
 		for (int i = 0; i < windowSize; i++) {
@@ -58,7 +57,7 @@ public class Window {
 					FCpacket fcp = list.get(getWindowPos() + i);
 					fileCopyClient.testOut("send Packet: " + fcp.getSeqNum());
 					sendTill = getWindowPos() + i;
-					fileCopyClient.sends++;
+					FileCopyClient.sends++;
 					fileCopyClient.getUDP().send(fcp);
 					fcp.setTimestamp(System.nanoTime());
 					fileCopyClient.startTimer(fcp);
@@ -114,9 +113,12 @@ public class Window {
 
 	public FCpacket getBySeqNum(long seqNum) throws SeqNrNotInWindowException {
 		for (int i = 0; i < windowSize; i++) {
-			if (list.get(getWindowPos() + i).getSeqNum() == seqNum) {
-				return list.get(getWindowPos() + i);
+			if (getWindowPos() + i<list.size()) {
+				if (list.get(getWindowPos() + i).getSeqNum() == seqNum) {
+					return list.get(getWindowPos() + i);
+				}
 			}
+			
 
 		}
 		throw new SeqNrNotInWindowException(seqNum, this);

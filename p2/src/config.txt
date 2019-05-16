@@ -1,4 +1,5 @@
-USER_NAME = rnp2@web.de
-USER_PASSWORT = Raum07.65
+USER_NAME = bai4rnpB
+USER_PASSWORT = MdizFTd8
 
 bai4rnpB - MdizFTd8
+rnp2@web.de - Raum07.65

@@ -53,8 +53,7 @@ public class FileCopyServer {
 
 	// csv-log
 	// is accessed by all clients connnecting to this server
-	final static String csvFilePath = "C:\\Users\\Thorben\\git\\haw.bai4.rnp\\p3v2\\src\\haw\\hamburg\\TON\\log"
-			+ "\\log";
+	final static String csvFilePath = "../p3v2/src/haw/hamburg/TON/log/log.csv";
 	final static List<String> csvColumns = Arrays.asList("gesamtuebbertragungszeit", "wiederholteUebertragungen",
 			"empfangeneBestaetigungen", "mittelwertRTTallerACKs");
 

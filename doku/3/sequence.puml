@@ -1,0 +1,40 @@
+@startuml
+note over FilecopyServer: started on port X
+note over FileCopyClient
+    start
+    create Window
+    makeControlPacket
+    readContentFromFile
+    add controlPacket to Window
+    add FileContent to Window
+end note
+FileCopyClient-->FilecopyServer: Socket Connection
+FileCopyClient->SendingThread:run
+FileCopyClient->ReceivingThread:run
+loop 
+    SendingThread->FileCopyClient:send
+    activate FileCopyClient
+    FileCopyClient->TimerThread:start
+    FileCopyClient->FilecopyServer:send packet via udp
+    deactivate FileCopyClient
+
+    alt timer runs out
+        note over TimerThread: timer ends
+        TimerThread -> FileCopyClient: sendAgain
+        destroy TimerThread
+        activate FileCopyClient
+        FileCopyClient->FileCopyClient: double TimeOut
+        FileCopyClient->FilecopyServer:send packet via udp
+        FileCopyClient->TimerThread:start
+        deactivate FileCopyClient
+    else packet received
+        ReceivingThread->FileCopyClient:receive
+        activate FileCopyClient
+        FileCopyClient->FileCopyClient: computeTimeoutValue
+        FileCopyClient->FilecopyServer:receive ACK-packet via udp
+        FileCopyClient-> TimerThread:cancel
+        destroy TimerThread
+        deactivate FileCopyClient
+    end
+end
+@enduml
