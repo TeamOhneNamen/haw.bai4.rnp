@@ -73,7 +73,7 @@ public class RoutineThreadClientSide extends Thread {
 		String msg = getMSG();
 		while (!msg.startsWith("USER")) {
 			if (msg.startsWith("CAPA")) {
-				// Pop3ProxyClientSide.send2ProxyConsole("+OK " + msg);
+				 Pop3ProxyClientSide.send2ProxyConsole("+OK " + msg);
 				sendMSG("+OK");
 				sendMSG(".");
 				msg = getMSG();
@@ -82,8 +82,8 @@ public class RoutineThreadClientSide extends Thread {
 				sendMSG("-ERR");
 				msg = getMSG();
 			} else {
-				Pop3ProxyClientSide.send2ProxyConsole("+OK " + msg);
-				sendMSG("+OK " + msg.toUpperCase());
+				Pop3ProxyClientSide.send2ProxyConsole("-ERR " + msg);
+				sendMSG("-ERR " + msg.toUpperCase());
 				msg = getMSG();
 			}
 
@@ -200,16 +200,16 @@ public class RoutineThreadClientSide extends Thread {
 		char[] message = new char[255];
 		inFromClient.read(message, 0, 255);
 		String[] messages = new String(message, 0, 255).split("\r\n");
-		System.out.print("getMSG(): "+ messages[0]);
+//		System.out.print("getMSG(): "+ messages[0]);
 		String messageString = messages[0];
 //		String messageString = inFromClient.readLine();
 		return messageString;
 	}
 
 	private void sendMSG(String msg) {
-		out2Client.println(msg);
-//		out2Client.print(msg + "\r\n");
-//		out2Client.flush();
+//		out2Client.println(msg);
+		out2Client.print(msg + "\r\n");
+		out2Client.flush();
 	}
 
 	private boolean getUsername(String msg) throws UnsupportedEncodingException, IOException {
