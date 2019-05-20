@@ -149,14 +149,11 @@ public class FileCopyClient extends Thread {
 			sThread.join();
 			rThread.join();
 			
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
+		} catch (FileNotFoundException  e) {
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -186,14 +183,10 @@ public class FileCopyClient extends Thread {
 			fos.write(line);
 			check = fis.read(line);
 		}
+		fis.close();
+		fos.close();
 		return lines;
 
-	}
-
-	private void fileOut(String inList) {
-		if (TEST_OUTPUT_MODE_FILE) {
-			System.out.println(inList);
-		}
 	}
 
 	/**
