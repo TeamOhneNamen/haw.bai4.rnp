@@ -79,6 +79,7 @@ public class FileCopyClient extends Thread {
 
 	@Override
 	public void run() {
+		System.out.println("Start FileCopyClient");
 		runFileCopyClient();
 	}
 	
@@ -176,27 +177,15 @@ public class FileCopyClient extends Thread {
 		ArrayList<byte[]> lines = new ArrayList<byte[]>();
 		
 		FileInputStream fis = new FileInputStream(new File(sourcePath));
-		
+		FileOutputStream fos = new FileOutputStream("../p3v2/src/haw/hamburg/TON/test/thorben_test.pdf");
 		byte line[] = new byte[UDP_PACKET_SIZE-8];
 		
 		int check = fis.read(line);
 		while (check!=-1) {
-			System.out.println("line: "+String.valueOf(line));
 			lines.add(line);
+			fos.write(line);
 			check = fis.read(line);
 		}
-		
-		
-//		try (FileOutputStream stream = new FileOutputStream("../p3/src/haw/hamburg/TON/thorben_test.pdf")) {
-//			lines.stream().forEach(l -> {
-//				try {
-//					stream.write(l);
-//				} catch (IOException e) {
-//					e.printStackTrace();
-//				}
-//			});
-//			
-//		}
 		return lines;
 
 	}
@@ -312,8 +301,8 @@ public class FileCopyClient extends Thread {
 		FileCopyClient myClient;
 		if (argv.length == 0) {
 			myClient = new FileCopyClient("localhost", "23000",
-					"../p3v2/src/haw/hamburg/TON/test/BAI-RN_SoSe19_Aufgabe1.pdf",
-					"../p3v2/src/haw/hamburg/TON/UDP_REC.pdf",
+					"../p3v2/src/haw/hamburg/TON/test/source.txt",
+					"../p3v2/src/haw/hamburg/TON/test/destination.txt",
 					 "10",
 					"0");
 		} else {
