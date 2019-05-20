@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -174,16 +175,28 @@ public class FileCopyClient extends Thread {
 	private ArrayList<byte[]> makeAString() throws IOException {
 		ArrayList<byte[]> lines = new ArrayList<byte[]>();
 		
-		FileInputStream fis = new FileInputStream(new File(destPath));
+		FileInputStream fis = new FileInputStream(new File(sourcePath));
 		
 		byte line[] = new byte[UDP_PACKET_SIZE-8];
 		
 		int check = fis.read(line);
 		while (check!=-1) {
+			System.out.println("line: "+String.valueOf(line));
 			lines.add(line);
 			check = fis.read(line);
 		}
-
+		
+		
+//		try (FileOutputStream stream = new FileOutputStream("../p3/src/haw/hamburg/TON/thorben_test.pdf")) {
+//			lines.stream().forEach(l -> {
+//				try {
+//					stream.write(l);
+//				} catch (IOException e) {
+//					e.printStackTrace();
+//				}
+//			});
+//			
+//		}
 		return lines;
 
 	}
@@ -299,15 +312,23 @@ public class FileCopyClient extends Thread {
 		FileCopyClient myClient;
 		if (argv.length == 0) {
 			myClient = new FileCopyClient("localhost", "23000",
-					"../p3/src/haw/hamburg/TON/testdoc.txt",
-					"../p3/src/haw/hamburg/TON/dest/testdoccopy.txt", "10",
+					"../p3v2/src/haw/hamburg/TON/test/BAI-RN_SoSe19_Aufgabe1.pdf",
+					"../p3v2/src/haw/hamburg/TON/UDP_REC.pdf",
+					 "10",
 					"0");
 		} else {
 			myClient = new FileCopyClient(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 		}
+		FileCopyClient.main(myClient);
+	}
+	public static void main(FileCopyClient myClient) {
 		startTime = System.nanoTime();
 		myClient.start();
-		myClient.join();
+		try {
+			myClient.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		endTime = System.nanoTime();
 		// vorgaben von keil
 		double gesamtuebbertragungszeit = (endTime - startTime);
@@ -321,11 +342,17 @@ public class FileCopyClient extends Thread {
 		System.out.println(FileCopyServer.csvColumns.get(1) + " " + wiederholteUebertragungen);
 		System.out.println("Sendungen " + sends);
 		System.out.println(FileCopyServer.csvColumns.get(3) + " " + mittelwertRTTallerACKs + " ns");
-		FileWriter writer = new FileWriter(FileCopyServer.csvFilePath, true);
-		CSVUtils.writeLine(writer, Arrays.asList(String.valueOf(gesamtuebbertragungszeit),
-				String.valueOf(wiederholteUebertragungen), String.valueOf(empfangeneBestaetigungen), String.valueOf(mittelwertRTTallerACKs)));
-		writer.flush();
-		writer.close();
+		FileWriter writer;
+		try {
+			writer = new FileWriter(FileCopyServer.csvFilePath, true);
+			CSVUtils.writeLine(writer, Arrays.asList(String.valueOf(gesamtuebbertragungszeit),
+					String.valueOf(wiederholteUebertragungen), String.valueOf(empfangeneBestaetigungen), String.valueOf(mittelwertRTTallerACKs)));
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 	}
 
