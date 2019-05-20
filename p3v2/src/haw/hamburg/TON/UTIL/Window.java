@@ -12,7 +12,7 @@ public class Window {
 	ReentrantLock windowLock = new ReentrantLock();
 
 	int sendTill = -1;
-	int windowPos = 0;
+	private int windowPos = 0;
 	int windowSize;
 	ArrayList<FCpacket> list = new ArrayList<FCpacket>();
 	FileCopyClient fileCopyClient;
@@ -28,8 +28,12 @@ public class Window {
 		return sendTill;
 	}
 
-	public int getWindowPos() {
+	public synchronized int getWindowPos() {
 		return windowPos;
+	}
+
+	public synchronized int incWindowPos() {
+		return windowPos++;
 	}
 
 	public int getSize() {
@@ -37,23 +41,23 @@ public class Window {
 
 	}
 
-	public void setupTheWindow(ArrayList<String> list) {
+	public void setupTheWindow(ArrayList<byte[]> list) {
 		int seqNum = 1;
 		for (int i = 0; i < list.size(); i++) {
-			this.list.add(new FCpacket(seqNum, list.get(i).getBytes(), list.get(i).length()));
+			this.list.add(new FCpacket(seqNum, list.get(i), list.get(i).length));
 			seqNum++;
 		}
 	}
 
 	public void send() throws IOException {
-		windowLock.lock();
+		fileCopyClient.getWindowLock().lock();
 		for (int i = 0; i < windowSize; i++) {
-			if (windowPos + i > sendTill) {
-				if (windowPos + i <= fileCopyClient.anzahlDerPackete - 1) {
-					FCpacket fcp = list.get(windowPos + i);
+			if (getWindowPos() + i > sendTill) {
+				if (getWindowPos() + i <= fileCopyClient.anzahlDerPackete - 1) {
+					FCpacket fcp = list.get(getWindowPos() + i);
 					fileCopyClient.testOut("send Packet: " + fcp.getSeqNum());
-					sendTill = windowPos + i;
-					fileCopyClient.sends++;
+					sendTill = getWindowPos() + i;
+					FileCopyClient.sends++;
 					fileCopyClient.getUDP().send(fcp);
 					fcp.setTimestamp(System.nanoTime());
 					fileCopyClient.startTimer(fcp);
@@ -63,34 +67,34 @@ public class Window {
 
 			}
 		}
-		windowLock.unlock();
+		fileCopyClient.getWindowLock().unlock();
 	}
 
 	public void revece() throws IOException {
 		fileCopyClient.testOut("waiting for input");
 		FCpacket fcp = fileCopyClient.getUDP().receve();
 
-		windowLock.lock();
+		fileCopyClient.getWindowLock().lock();
 		try {
 			fcp = getBySeqNum(fcp.getSeqNum());
 			long duration = System.nanoTime() - fcp.getTimestamp();
 			fileCopyClient.testOut("Packet " + fcp.getSeqNum() + " took " + duration + "ns");
 			fileCopyClient.computeTimeoutValue(duration);
-			
-			//errechnung der Durchschnittlichen rtt
-			if (FileCopyClient.avgRtt==0) {
+
+			// errechnung der Durchschnittlichen rtt
+			if (FileCopyClient.avgRtt == 0) {
 				FileCopyClient.avgRtt = duration;
-			}else {
+			} else {
 				FileCopyClient.avgRtt = FileCopyClient.avgRtt + duration;
 			}
-			
+
 			getBySeqNum(fcp.getSeqNum()).setValidACK(true);
 			fileCopyClient.testOut("ACK for Packet " + fcp.getSeqNum() + " receved!");
 			fileCopyClient.cancelTimer(fcp);
-			if (windowPos != getSize()) {
+			if (getWindowPos() != getSize()) {
 				try {
-					while (list.get(windowPos).isValidACK()) {
-						windowPos++;
+					while (list.get(getWindowPos()).isValidACK()) {
+						incWindowPos();
 					}
 				} catch (IndexOutOfBoundsException e) {
 				}
@@ -99,33 +103,37 @@ public class Window {
 
 			fileCopyClient.testOutWindow();
 		} catch (SeqNrNotInWindowException e) {
-			e.printStackTrace();
+			System.out.println(e.getSeqNr() + " is not in window: " + fileCopyClient.getWindow().toString());
+			// fileCopyClient.testOut(e.getSeqNr() + " is not in window: " +
+			// fileCopyClient.getWindow().toString());
 		}
-		windowLock.unlock();
+		fileCopyClient.getWindowLock().unlock();
 
 	}
 
 	public FCpacket getBySeqNum(long seqNum) throws SeqNrNotInWindowException {
-
 		for (int i = 0; i < windowSize; i++) {
-			if (list.get(windowPos + i).getSeqNum() == seqNum) {
-				return list.get(windowPos + i);
+			if (getWindowPos() + i<list.size()) {
+				if (list.get(getWindowPos() + i).getSeqNum() == seqNum) {
+					return list.get(getWindowPos() + i);
+				}
 			}
-		}
+			
 
-		throw new SeqNrNotInWindowException(seqNum);
+		}
+		throw new SeqNrNotInWindowException(seqNum, this);
 	}
 
 	@Override
 	public String toString() {
-		if (windowPos == list.size()) {
+		if (getWindowPos() == list.size()) {
 			return "- empty -";
 		}
 
-		String output = list.get(windowPos).getSeqNum() + " | ";
+		String output = list.get(getWindowPos()).getSeqNum() + " | ";
 		for (int i = 0; i < windowSize; i++) {
-			if (windowPos + i <= list.size() - 1) {
-				if (list.get(windowPos + i).isValidACK()) {
+			if (getWindowPos() + i <= list.size() - 1) {
+				if (list.get(getWindowPos() + i).isValidACK()) {
 					output += "#";
 				} else {
 					output += "-";
@@ -134,10 +142,10 @@ public class Window {
 
 		}
 
-		if (windowPos + windowSize >= list.size()) {
+		if (getWindowPos() + windowSize >= list.size()) {
 			return output + " | " + list.get(list.size() - 1).getSeqNum();
 		} else {
-			return output + " | " + list.get(windowPos + windowSize).getSeqNum();
+			return output + " | " + list.get(getWindowPos() + windowSize).getSeqNum();
 		}
 	}
 }

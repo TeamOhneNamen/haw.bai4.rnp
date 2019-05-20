@@ -1,4 +1,5 @@
-USER_NAME = rnp2@web.de
-USER_PASSWORT = Raum07.65
+USER_NAME = bai4rnpB,rnp2@web.de
+USER_PASSWORT = MdizFTd8,Raum07.65
+EMAIL_SERVER = lab30.cpt.haw-hamburg.de,localhost
+EMAIL_SERVER_PORT = 11000,11000
 
-bai4rnpB - MdizFTd8

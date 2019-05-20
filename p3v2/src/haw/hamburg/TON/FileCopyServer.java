@@ -5,13 +5,19 @@ package haw.hamburg.TON;
  Praktikum Rechnernetze HAW Hamburg
  Autor: M. Huebner
  */
-import java.io.*;
-
-import java.net.*;
-
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 
+import haw.hamburg.TON.UTIL.CSVUtils;
 import haw.hamburg.TON.UTIL.FCpacket;
 
 public class FileCopyServer {
@@ -45,10 +51,26 @@ public class FileCopyServer {
 	// Test error production
 	private long recPacketCounter;
 
+	// csv-log
+	// is accessed by all clients connnecting to this server
+	final static String csvFilePath = "../p3v2/src/haw/hamburg/TON/log/log.csv";
+	final static List<String> csvColumns = Arrays.asList("gesamtuebbertragungszeit", "wiederholteUebertragungen",
+			"empfangeneBestaetigungen", "mittelwertRTTallerACKs");
+
 	// Constructor
 	public FileCopyServer() {
+		try {
+			FileWriter writer = new FileWriter(FileCopyServer.csvFilePath, false);
+			CSVUtils.writeLine(writer, csvColumns);
+			writer.flush();
+			writer.close();
+			System.out.println("Log created at: " + FileCopyServer.csvFilePath);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		receiveData = new byte[UDP_PACKET_SIZE];
 		recBuf = new LinkedList<FCpacket>();
+
 	}
 
 	public void runFileCopyServer() throws IOException {

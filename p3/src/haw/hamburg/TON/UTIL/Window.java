@@ -28,7 +28,7 @@ public class Window extends ArrayList<FCpacket>{
 				return this.get(i);
 			}
 		}
-		throw new SeqNrNotInWindowException(seqNr);
+		throw new SeqNrNotInWindowException(seqNr, this);
 		
 	}
 	

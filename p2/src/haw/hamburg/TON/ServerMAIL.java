@@ -9,6 +9,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * 
+ * @author Ferdinand Trendelenburg AND Thorben Schomacker
+ *
+ *
+ */
+
 public class ServerMAIL {
 	
 	static BufferedReader in;
@@ -20,7 +27,7 @@ public class ServerMAIL {
 		ServerSocket ss;
 		try {
 			ss = new ServerSocket(11000);
-			System.out.println("[SERVER] gestartet auf: 12345");
+			System.out.println("[SERVER] gestartet auf: 11000");
 			Socket client = ss.accept();
 			System.out.println("[SERVER] neue Verbindung");
 

@@ -30,6 +30,7 @@ public class Client {
 			PrintWriter out = new PrintWriter(
 					new OutputStreamWriter(connect2server.getOutputStream(), StandardCharsets.UTF_8), true);			
 			
+			
 			while (true) {
 
 				while (!readFromConsol.ready()) {

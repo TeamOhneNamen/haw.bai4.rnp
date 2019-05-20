@@ -2,13 +2,22 @@ package haw.hamburg.TON.proxy.clinetSide;
 
 import java.util.ArrayList;
 
+/**
+ * 
+ * @author Ferdinand Trendelenburg AND Thorben Schomacker
+ *
+ * List to Manage The List of BusinessThreads in The System (Threads handle POP3-Server-sided Connections) 
+ *
+ */
 public class BusinessThreadList extends ArrayList<RoutineThreadClientSide> {
 	
 	private static final long serialVersionUID = 1L;
 
 
-	// liefert den index der connection in der "BusinessThreadList"(BTL),
-	// die noch frei ist | wenn keine dann -1
+	/**
+	 * get the index of free "BusinessThreadList"(BTL) Slots 
+	 * @return position in BTL | -1 if no free Slot 
+	 */
 	public int getFree() {
 		
 		for (int i = 0; i < this.size(); i++) {
@@ -20,7 +29,10 @@ public class BusinessThreadList extends ArrayList<RoutineThreadClientSide> {
 		
 	}
 	
-	// wieviele Connecrions hat der Server noch offen?
+	/**
+	 * how many connections are free to connect;
+	 * @return ammound
+	 */
 	public int manyConnections() {
 		int ammound = 0;
 		for (int i = 0; i < this.size(); i++) {
