@@ -27,6 +27,8 @@ public class UDP {
 		
 	}
 	
+	
+	//send MSG to Server
 	public void send(FCpacket packet) throws IOException {
 		
 		receiveData = packet.getSeqNumBytesAndData();
@@ -37,6 +39,8 @@ public class UDP {
 		
 	}
 	
+
+	//receve MSG to Server
 	public FCpacket receve() throws IOException {
 		
 		receiveData = new byte[dataSize];

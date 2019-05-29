@@ -221,6 +221,10 @@ public class FileCopyClient extends Thread {
 		sendAgain(seqNum);
 	}
 
+	/**
+	 * Try to send Packet again
+	 * @param seqNum
+	 */
 	private void sendAgain(long seqNum) {
 
 		windowLock.lock();
@@ -276,12 +280,20 @@ public class FileCopyClient extends Thread {
 		return new FCpacket(0, sendData, sendData.length);
 	}
 
+	/**
+	 * prints out 2 console
+	 * @param out
+	 */
 	public void testOut(String out) {
 		if (TEST_OUTPUT_MODE) {
 			System.err.printf("%,d %s: %s\n", System.nanoTime(), Thread.currentThread().getName(), out);
 		}
 	}
 
+	/**
+	 * prints Window out 2 console
+	 * @param out
+	 */
 	public void testOutWindow() {
 		if (TEST_OUTPUT_MODE_WINDOW) {
 			getWindowLock().lock();
@@ -303,6 +315,11 @@ public class FileCopyClient extends Thread {
 		}
 		FileCopyClient.main(myClient);
 	}
+	
+	/**
+	 * Starts the File-Cpoy-Routine
+	 * @param myClient
+	 */
 	public static void main(FileCopyClient myClient) {
 		startTime = System.nanoTime();
 		myClient.start();

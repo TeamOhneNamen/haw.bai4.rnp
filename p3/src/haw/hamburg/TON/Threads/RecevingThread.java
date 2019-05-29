@@ -12,6 +12,10 @@ public class RecevingThread extends Thread{
 		this.fileCopyClient = fileCopyClient;
 	}
 	
+	/**
+	 * receve the whole time Msges
+	 */
+	
 	@Override
 	public void run() {
 		int windowPos = -1;

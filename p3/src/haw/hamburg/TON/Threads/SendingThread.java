@@ -13,6 +13,10 @@ public class SendingThread extends Thread {
 		this.fileCopyClient = fileCopyClient;
 	}
 	
+	/**
+	 * send the whole time Msges if Msges in the Window
+	 */
+	
 	@Override
 	public void run() {
 		int sendUntil = -1;

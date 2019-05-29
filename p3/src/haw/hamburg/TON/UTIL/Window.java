@@ -24,6 +24,9 @@ public class Window {
 
 	}
 
+	/**
+	 * GETTER & SETTER
+	 */
 	public int getSendUntil() {
 		return sendTill;
 	}
@@ -41,6 +44,12 @@ public class Window {
 
 	}
 
+	/**
+	 *  put all msg from the byte[][] in new FCpackets 
+	 *  PROBLEM: if the Data and the byte[] is to big, - Stack overflow 
+	 *  bacause we load the whole Data in the Array.... that might be an problem
+	 * @param list
+	 */
 	public void setupTheWindow(ArrayList<byte[]> list) {
 		int seqNum = 1;
 		for (int i = 0; i < list.size(); i++) {
@@ -49,6 +58,10 @@ public class Window {
 		}
 	}
 
+	/**
+	 * sendet alle Pakete im Windowbereich, die noch nicht gesendet wurden
+	 * @throws IOException
+	 */
 	public void send() throws IOException {
 		fileCopyClient.getWindowLock().lock();
 		for (int i = 0; i < windowSize; i++) {
@@ -70,6 +83,11 @@ public class Window {
 		fileCopyClient.getWindowLock().unlock();
 	}
 
+	/**
+	 * receves packets and set the setValidACK from the recieved Packet to true. 
+	 * if the Packet is @ the "sendTill" position then incWindowPos()
+	 * @throws IOException
+	 */
 	public void revece() throws IOException {
 		fileCopyClient.testOut("waiting for input");
 		FCpacket fcp = fileCopyClient.getUDP().receve();
@@ -111,6 +129,13 @@ public class Window {
 
 	}
 
+	/**
+	 * finds and return Packet with seqenceNumber: seqNum
+	 * @param seqNum
+	 * @return
+	 * @throws SeqNrNotInWindowException
+	 */
+	
 	public FCpacket getBySeqNum(long seqNum) throws SeqNrNotInWindowException {
 		for (int i = 0; i < windowSize; i++) {
 			if (getWindowPos() + i<list.size()) {
@@ -124,6 +149,9 @@ public class Window {
 		throw new SeqNrNotInWindowException(seqNum, this);
 	}
 
+	/**
+	 * return The Window as optical String
+	 */
 	@Override
 	public String toString() {
 		if (getWindowPos() == list.size()) {
