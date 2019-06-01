@@ -126,6 +126,7 @@ public class Client {
 
         Client client;
         try {
+
             client = new Client(argv);
         } catch (SocketException|UnknownHostException e) {
             System.err.println("Error setting up client: " + e.toString());
