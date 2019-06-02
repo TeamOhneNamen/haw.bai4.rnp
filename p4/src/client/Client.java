@@ -78,7 +78,9 @@ public class Client {
      * Sends a message to the emulated network.
      */
     private void sendMessage() throws IOException {
-        IpPacket ipPacket = new IpPacket(echoServerIP, hopLimit, nextHopIp, nextHopPort);
+        //IpPacket ipPacket = new IpPacket(echoServerIP, hopLimit, nextHopIp, nextHopPort);
+    	Inet6Address source = (Inet6Address) Inet6Address.getByName("::1:1");
+        IpPacket ipPacket = new IpPacket(source, echoServerIP, hopLimit, nextHopIp, nextHopPort);
         switch (packetType) {
             case Data:
                 DataPacket dataPacket = new DataPacket(data);

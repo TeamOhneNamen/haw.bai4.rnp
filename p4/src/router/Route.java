@@ -2,6 +2,7 @@ package router;
 
 import java.io.IOException;
 import java.net.Inet6Address;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import layers.NetworkLayer;
@@ -27,12 +28,12 @@ public class Route {
 		this.destIp = destIp;
 	}
 
-	public Inet6Address getSourceIp() {
+	public Inet6Address getNextIp() {
 		return nextIp;
 	}
 
-	public void setSourceIp(Inet6Address sourceIp) {
-		this.nextIp = sourceIp;
+	public void setNextIp(Inet6Address nextIp) {
+		this.nextIp = nextIp;
 	}
 
 	public int getNextPort() {
@@ -49,38 +50,6 @@ public class Route {
 		this.destIp = (Inet6Address) Inet6Address.getByName(destIp);
 		this.nextIp = (Inet6Address) Inet6Address.getByName(nextIp);
 		this.nextPort = nextPort;
-	}
-
-	/**
-	 * sends an IpPacket to the next IP of the Route
-	 * @param revievedPack
-	 * @throws IOException
-	 */
-	public void send2Route(IpPacket revievedPack) throws IOException {
-		NetworkLayer nwLayer = new NetworkLayer(nextPort);
-		if (revievedPack.getHopLimit() <= 1) {
-			revievedPack.setDestinationAddress(revievedPack.getSourceAddress());
-			revievedPack.setSourceAddress(revievedPack.getNextHopIp());
-			Route route = router.findRightRoute(revievedPack);
-			setupAsICMP(revievedPack);
-			route.send2Route(revievedPack);
-		} else {
-			revievedPack.setHopLimit(revievedPack.getHopLimit()-1);
-			revievedPack.setNextHopIp(nextIp);
-			revievedPack.setNextPort(nextPort);
-			nwLayer.sendPacket(revievedPack);
-		}
-	}
-	
-	/**
-	 * setting up the IpPacket as a ICMP packet
-	 * @param revievedPack
-	 */
-	private void setupAsICMP(IpPacket revievedPack){
-		
-		revievedPack.setControlPayload("Time Exceeded".getBytes());
-		revievedPack.setHopLimit(180);
-		
 	}
 
 }
