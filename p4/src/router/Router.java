@@ -113,7 +113,7 @@ public class Router extends Thread {
 			out2Console(routes.size() + " routes read:");
 			for (int i = 0; i < routes.size(); i++) {
 				Route route = routes.get(i);
-				out2Console("Router " + id + " read Route: [TO: " + route.destIp + "] via [NextIP " + route.nextIp
+				out2Console("Read Route: [TO: " + route.destIp + "] via [NextIP " + route.nextIp
 						+ "; PORT:" + route.nextPort + "]");
 			}
 		} catch (Exception e) {
@@ -303,17 +303,26 @@ public class Router extends Thread {
 	}
 
 	private void printPacket(IpPacket revievedPack) {
-		out2Console("-----------------------------------------------");
+		
+		boolean ismsg = false;
+		String msg = "";
+		try {
+			msg = ("MSG: " + revievedPack.getDataPacket().toString());
+			out2Console("-----------------------" + "MSG" + "-----------------------");
+		} catch (NoSuchElementException e) {
+			out2Console("------------" + "ICMP Type: " + revievedPack.getControlPacket().toString() + "------------");
+		}
 		out2Console("from: " + revievedPack.getSourceAddress());
 		out2Console("will send to: " + revievedPack.getDestinationAddress());
 		out2Console("via: IP: " + revievedPack.getNextHopIp());
 		out2Console("via: PORT: " + revievedPack.getNextHopPort());
 		out2Console("HOPLIMIT: " + revievedPack.getHopLimit());
-		try {
-			out2Console(revievedPack.getDataPacket().toString());
-		} catch (NoSuchElementException e) {
-			out2Console(revievedPack.getControlPacket().toString());
+		
+		if (ismsg) {
+			out2Console("MSG: " + msg);
 		}
-		out2Console("-----------------------------------------------");
+		
+		out2Console("-------------------------------------------------");
+		
 	}
 }
