@@ -17,18 +17,20 @@ import packets.ControlPacket;
 
 public class Router extends Thread {
 
+	// Konstanten
 	final String FILENOTFOUND = "no file found";
 	final String DESTINATIONUNREACHABLE = "Destination Unreachable";
 	final String TIMEEXCEEDET = "Time Exceedet";
 	final int HOPLIMIT = 255;
 
-	ArrayList<Route> routes = new ArrayList<Route>();
 	int id;
 	int port;
 	String inet6Address;
-
 	NetworkLayer netLayer;
 
+	ArrayList<Route> routes = new ArrayList<Route>();
+	
+	// Constructor
 	public Router(String configPath, int id, int port, String inet6Address) {
 		try {
 			netLayer = new NetworkLayer(port);
@@ -188,6 +190,10 @@ public class Router extends Thread {
 
 	}
 
+	/**
+	 * whenn The Route not Exist, send a "DESTINATIONUNREACHABLE" controllpack
+	 * @param revievedPack
+	 */
 	public void routeNotExist(IpPacket revievedPack) {
 		try {
 			System.out.println("Route zu: " + revievedPack.getDestinationAddress() + " exestiert nicht!");
