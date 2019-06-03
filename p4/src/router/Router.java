@@ -52,20 +52,15 @@ public class Router extends Thread {
 
 			while (true) {
 				ipPacket = netLayer.getPacket();
-				Route route = findRightRoute(ipPacket);
-				if (route == null) {
-					outERR("System not Reachable");
-				} else {
+				
 					send2Route(ipPacket);
-				}
+				
 			}
 
 		} catch (SocketException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			outERR("IP not in right format");
-		} catch (RouteNotExistException e) {
-			routeNotExist(ipPacket);
 		}
 
 	}
