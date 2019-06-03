@@ -50,13 +50,26 @@ public class start {
 			System.err.println("starting client");
 			String[] argClient = new String[8];
 			argClient[0] = "Data";
-			argClient[1] = "hallo";
+			argClient[1] = "\r\n" +
+					" ._________________.\r\n" + 
+					" | _______________ |\r\n" + 
+					" | I             I |\r\n" + 
+					" | I             I |\r\n" + 
+					" | I             I |\r\n" + 
+					" | I             I |\r\n" + 
+					" | I_____________I |\r\n" + 
+					" !_________________!\r\n" + 
+					"    ._[_______]_.\r\n" + 
+					".___|___________|___.\r\n" + 
+					"|::: ____           |\r\n" + 
+					"|    ~~~~ [FLOPPY]  |\r\n" + 
+					"!___________________!\r\n";
 			argClient[2] = "::1:1";
 			argClient[3] = "::2:1";
 			argClient[4] = "2011";
 			argClient[5] = "fe80::50d8:eb71:a92e:5bce";
 			argClient[6] = "2010";
-			argClient[7] = "5";
+			argClient[7] = "6";
 			Client client = new Client(argClient);
 			System.err.println("start sending...");
 			client.sendAndReceiveMessage();

@@ -29,7 +29,7 @@ public class Router extends Thread {
 	NetworkLayer netLayer;
 
 	ArrayList<Route> routes = new ArrayList<Route>();
-	
+
 	// Constructor
 	public Router(String configPath, int id, int port, String inet6Address) {
 		try {
@@ -49,19 +49,6 @@ public class Router extends Thread {
 
 		IpPacket ipPacket = null;
 		try {
-
-			if (id == 0) {
-				Inet6Address sourceAddr = (Inet6Address) Inet6Address.getByName(this.inet6Address);
-				Inet6Address destination = (Inet6Address) Inet6Address.getByName("::2:1");
-				ipPacket = new IpPacket(sourceAddr, destination, 100, null, 0);
-				ipPacket.setDataPayload("hallo".getBytes());
-				Route route = findRightRoute(ipPacket);
-				ipPacket.setNextHopIp(route.getNextIp());
-				ipPacket.setNextPort(route.getNextPort());
-
-				printPacket(ipPacket);
-				netLayer.sendPacket(ipPacket);
-			}
 
 			while (true) {
 				ipPacket = netLayer.getPacket();
@@ -113,8 +100,8 @@ public class Router extends Thread {
 			out2Console(routes.size() + " routes read:");
 			for (int i = 0; i < routes.size(); i++) {
 				Route route = routes.get(i);
-				out2Console("Read Route: [TO: " + route.destIp + "] via [NextIP " + route.nextIp
-						+ "; PORT:" + route.nextPort + "]");
+				out2Console("Read Route: [TO: " + route.destIp + "] via [NextIP " + route.nextIp + "; PORT:"
+						+ route.nextPort + "]");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -173,7 +160,7 @@ public class Router extends Thread {
 				printPacket(revievedPack);
 				netLayer.sendPacket(revievedPack);
 			} else {
-				Route newRoute = findRightRoute(revievedPack);
+				Route newRoute = findRightRoute(revievedPack); // findRight Route 2x
 				revievedPack.setHopLimit(revievedPack.getHopLimit() - 1);
 				revievedPack.setNextHopIp(newRoute.getNextIp());
 				revievedPack.setNextPort(newRoute.getNextPort());
@@ -192,6 +179,7 @@ public class Router extends Thread {
 
 	/**
 	 * whenn The Route not Exist, send a "DESTINATIONUNREACHABLE" controllpack
+	 * 
 	 * @param revievedPack
 	 */
 	public void routeNotExist(IpPacket revievedPack) {
@@ -260,19 +248,11 @@ public class Router extends Thread {
 
 		for (int i = 0; i < charDestAddr.length; i++) {
 			if (charDestAddr[i] != charOldAddr[i]) {
-				if (charDestAddr[i] != charNewAddr[i]) {
-					return false;
-				} else {
+				if (charDestAddr[i] == charNewAddr[i]) {
 					return true;
 				}
 			}
-			if (charDestAddr[i] != charNewAddr[i]) {
-				if (charDestAddr[i] != charOldAddr[i]) {
-					return false;
-				} else {
-					return false;
-				}
-			}
+
 		}
 		return false;
 
@@ -303,7 +283,7 @@ public class Router extends Thread {
 	}
 
 	private void printPacket(IpPacket revievedPack) {
-		
+
 		boolean ismsg = false;
 		String msg = "";
 		try {
@@ -316,12 +296,12 @@ public class Router extends Thread {
 		out2Console("to:   " + revievedPack.getDestinationAddress());
 		out2Console("via:  " + revievedPack.getNextHopIp() + "/" + revievedPack.getNextHopPort());
 		out2Console("HOPLIMIT: " + revievedPack.getHopLimit());
-		
+
 		if (ismsg) {
 			out2Console("MSG: " + msg);
 		}
-		
+
 		out2Console("-------------------------------------------------");
-		
+
 	}
 }
