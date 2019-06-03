@@ -1,12 +1,8 @@
 package router;
 
-import java.io.IOException;
 import java.net.Inet6Address;
-import java.net.SocketException;
 import java.net.UnknownHostException;
 
-import layers.NetworkLayer;
-import packets.IpPacket;
 
 public class Route {
 

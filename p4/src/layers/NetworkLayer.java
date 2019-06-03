@@ -1,12 +1,10 @@
 package layers;
 
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.Inet6Address;
-import java.net.SocketException;
+import java.net.*;
 
 import packets.IpPacket;
+
+import java.io.*;
 
 /**
  * The emulation of the network layer.
@@ -58,8 +56,8 @@ public class NetworkLayer {
      */
     public void sendPacket(IpPacket ipPacket) throws IOException {
         byte[] data = ipPacket.getBytes();
-        Inet6Address localhost = (Inet6Address) Inet6Address.getByName("2001:16B8:608A:9C00:D5C9:1DC6:4D8F:6C45");
-        DatagramPacket packet = new DatagramPacket(data, data.length, localhost, ipPacket.getNextHopPort()); 
+        InetAddress localhost = (Inet6Address) Inet6Address.getByName("2001:16B8:608A:9C00:B931:B79A:562E:B43C");
+        DatagramPacket packet = new DatagramPacket(data, data.length, localhost, ipPacket.getNextHopPort());
         //DatagramPacket packet = new DatagramPacket(data, data.length, ipPacket.getNextHopIp(), ipPacket.getNextHopPort());
         socket.send(packet);
     }

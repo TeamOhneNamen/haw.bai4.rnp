@@ -1,6 +1,7 @@
 import java.io.IOException;
 
 import client.Client;
+import client.Client;
 import router.Router;
 import server.Server;
 
@@ -45,16 +46,18 @@ public class start {
 				}
 			});
 			server2Thread.start();
-
+			
+			
 			System.err.println("starting client");
-			String[] argClient = new String[7];
+			String[] argClient = new String[8];
 			argClient[0] = "Data";
 			argClient[1] = "hallo";
-			argClient[2] = "::2:1";
-			argClient[3] = "2011";
-			argClient[4] = "::1:0";
-			argClient[5] = "2010";
-			argClient[6] = "255";
+			argClient[2] = "::1:1";
+			argClient[3] = "::2:1";
+			argClient[4] = "2011";
+			argClient[5] = "::1:0";
+			argClient[6] = "2010";
+			argClient[7] = "255";
 			Client client = new Client(argClient);
 			client.sendAndReceiveMessage();
 

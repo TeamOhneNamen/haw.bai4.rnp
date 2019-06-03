@@ -24,6 +24,7 @@ public class Client {
     private IpPacket.Header packetType;
     private ControlPacket.Type controlType;
     private byte[] data;
+    private Inet6Address localIP;
     private Inet6Address echoServerIP;
     private Inet6Address nextHopIp;
     private int nextHopPort;
@@ -55,12 +56,13 @@ public class Client {
             case Control:
                 controlType = ControlPacket.Type.valueOf(parameters[1]);
         }
-        echoServerIP = (Inet6Address) InetAddress.getByName(parameters[2]);
-        nextHopIp = (Inet6Address) InetAddress.getByName(parameters[4]);
-        nextHopPort = Integer.parseInt(parameters[5]);
-        hopLimit = Integer.parseInt(parameters[6]);
+        localIP = (Inet6Address) InetAddress.getByName(parameters[2]);
+        echoServerIP = (Inet6Address) InetAddress.getByName(parameters[3]);
+        nextHopIp = (Inet6Address) InetAddress.getByName(parameters[5]);
+        nextHopPort = Integer.parseInt(parameters[6]);
+        hopLimit = Integer.parseInt(parameters[7]);
 
-        int localPort = Integer.parseInt(parameters[3]);
+        int localPort = Integer.parseInt(parameters[4]);
         networkLayer = new NetworkLayer(localPort);
     }
 
@@ -78,9 +80,7 @@ public class Client {
      * Sends a message to the emulated network.
      */
     private void sendMessage() throws IOException {
-        //IpPacket ipPacket = new IpPacket(echoServerIP, hopLimit, nextHopIp, nextHopPort);
-    	Inet6Address source = (Inet6Address) Inet6Address.getByName("::1:1");
-        IpPacket ipPacket = new IpPacket(source, echoServerIP, hopLimit, nextHopIp, nextHopPort);
+        IpPacket ipPacket = new IpPacket(localIP, echoServerIP, hopLimit, nextHopIp, nextHopPort);
         switch (packetType) {
             case Data:
                 DataPacket dataPacket = new DataPacket(data);
@@ -108,12 +108,14 @@ public class Client {
         // to force it to prefer IPv6.
         System.getProperties().setProperty("java.net.preferIPv6Addresses", "true");
 
-        if (argv.length != 7) {
+        if (argv.length != 8) {
             System.out.println("Usage: Client <packet type> <packet data> <echo server IP> <local port> <next hop IP> <next hop port> <HL>");
             System.out.println("    packet type");
-            System.out.println("        - type of packet to send: data or control");
+            System.out.println("        - type of packet to send: 'Data' or 'Control'");
             System.out.println("    packet data");
             System.out.println("        - for data packets: string to send; for control packets: type of control packet");
+            System.out.println("    local IP");
+            System.out.println("        - IP of the client, this IP is set as the source IP in the sent packet");
             System.out.println("    echo server IP");
             System.out.println("        - IP of the echo server, this IP is the one used for routing");
             System.out.println("    local port");
@@ -128,7 +130,6 @@ public class Client {
 
         Client client;
         try {
-
             client = new Client(argv);
         } catch (SocketException|UnknownHostException e) {
             System.err.println("Error setting up client: " + e.toString());

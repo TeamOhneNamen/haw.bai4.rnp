@@ -1,11 +1,8 @@
 package packets;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.net.DatagramPacket;
-import java.net.Inet6Address;
-import java.net.UnknownHostException;
-import java.util.NoSuchElementException;
+import java.net.*;
+import java.io.*;
+import java.util.*;
 
 /**
  * A base packet of the emulated protocol hierarchy.

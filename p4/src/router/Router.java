@@ -64,6 +64,7 @@ public class Router extends Thread {
 			}
 
 			while (true) {
+				out2Console("waiting 4 Packet...");
 				ipPacket = netLayer.getPacket();
 				Route route = findRightRoute(ipPacket);
 				if (route == null) {
