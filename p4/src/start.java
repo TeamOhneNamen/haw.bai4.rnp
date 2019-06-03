@@ -1,7 +1,6 @@
 import java.io.IOException;
 
 import client.Client;
-import client.Client;
 import router.Router;
 import server.Server;
 
@@ -12,12 +11,12 @@ public class start {
 		try {
 
 			System.err.println("starting router1");
-			String config1 = "C:\\Users\\FerdinandTrendelenbu\\git\\haw.bai4.rnp\\haw.bai4.rnp\\p4\\src\\configs\\Router1.conf";
+			String config1 = "C:\\Users\\Haudegen\\git\\haw.bai4.rnp\\p4\\src\\configs\\Router1.conf";
 			Router router1 = new Router(config1, 1, 2010, "::1:0");
 			router1.start();
 
 			System.err.println("starting router2");
-			String config2 = "C:\\Users\\FerdinandTrendelenbu\\git\\haw.bai4.rnp\\haw.bai4.rnp\\p4\\src\\configs\\Router2.conf";
+			String config2 = "C:\\Users\\Haudegen\\git\\haw.bai4.rnp\\p4\\src\\configs\\Router2.conf";
 			Router router2 = new Router(config2, 2, 2020, "::2:0");
 			router2.start();
 
@@ -57,12 +56,13 @@ public class start {
 			argClient[4] = "2011";
 			argClient[5] = "::1:0";
 			argClient[6] = "2010";
-			argClient[7] = "255";
+			argClient[7] = "4";
 			Client client = new Client(argClient);
+			System.err.println("start sending...");
 			client.sendAndReceiveMessage();
+			System.err.println("end sending.");
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

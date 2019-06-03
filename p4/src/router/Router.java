@@ -310,7 +310,7 @@ public class Router extends Thread {
 			msg = ("MSG: " + revievedPack.getDataPacket().toString());
 			out2Console("-----------------------" + "MSG" + "-----------------------");
 		} catch (NoSuchElementException e) {
-			out2Console("------------" + "ICMP Type: " + revievedPack.getControlPacket().toString() + "------------");
+			outERR("------------" + "ICMP Type: " + revievedPack.getControlPacket().toString() + "------------");
 		}
 		out2Console("from: " + revievedPack.getSourceAddress());
 		out2Console("will send to: " + revievedPack.getDestinationAddress());
