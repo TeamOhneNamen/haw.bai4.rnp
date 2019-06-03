@@ -56,9 +56,7 @@ public class NetworkLayer {
      */
     public void sendPacket(IpPacket ipPacket) throws IOException {
         byte[] data = ipPacket.getBytes();
-        InetAddress localhost = (Inet6Address) Inet6Address.getByName("fe80::50d8:eb71:a92e:5bce");
-        DatagramPacket packet = new DatagramPacket(data, data.length, localhost, ipPacket.getNextHopPort());
-        //DatagramPacket packet = new DatagramPacket(data, data.length, ipPacket.getNextHopIp(), ipPacket.getNextHopPort());
+        DatagramPacket packet = new DatagramPacket(data, data.length, ipPacket.getNextHopIp(), ipPacket.getNextHopPort());
         socket.send(packet);
     }
 }

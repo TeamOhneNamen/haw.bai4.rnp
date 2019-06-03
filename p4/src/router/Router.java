@@ -50,7 +50,7 @@ public class Router extends Thread {
 		IpPacket ipPacket = null;
 		try {
 
-			if (id == 5) {
+			if (id == 0) {
 				Inet6Address sourceAddr = (Inet6Address) Inet6Address.getByName(this.inet6Address);
 				Inet6Address destination = (Inet6Address) Inet6Address.getByName("::2:1");
 				ipPacket = new IpPacket(sourceAddr, destination, 100, null, 0);
@@ -313,9 +313,8 @@ public class Router extends Thread {
 			outERR("------------" + "ICMP Type: " + revievedPack.getControlPacket().toString() + "------------");
 		}
 		out2Console("from: " + revievedPack.getSourceAddress());
-		out2Console("will send to: " + revievedPack.getDestinationAddress());
-		out2Console("via: IP: " + revievedPack.getNextHopIp());
-		out2Console("via: PORT: " + revievedPack.getNextHopPort());
+		out2Console("to:   " + revievedPack.getDestinationAddress());
+		out2Console("via:  " + revievedPack.getNextHopIp() + "/" + revievedPack.getNextHopPort());
 		out2Console("HOPLIMIT: " + revievedPack.getHopLimit());
 		
 		if (ismsg) {
