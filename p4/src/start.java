@@ -70,7 +70,7 @@ public class start {
 			argClient[4] = "2011";
 			argClient[5] = "fe80::50d8:eb71:a92e:5bce";
 			argClient[6] = "2010";
-			argClient[7] = "255";
+			argClient[7] = "4";
 			Client client = new Client(argClient);
 			System.err.println("start sending...");
 			client.sendAndReceiveMessage();

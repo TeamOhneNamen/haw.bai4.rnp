@@ -25,7 +25,7 @@ public class Router extends Thread {
 
 	int id;
 	int port;
-	String inet6Address;
+	Inet6Address inet6Address;
 	NetworkLayer netLayer;
 
 	ArrayList<Route> routes = new ArrayList<Route>();
@@ -34,7 +34,7 @@ public class Router extends Thread {
 	public Router(String configPath, int id, int port, String inet6Address) {
 		try {
 			netLayer = new NetworkLayer(port);
-			this.inet6Address = inet6Address;
+			this.inet6Address = (Inet6Address) Inet6Address.getByName(inet6Address);
 			this.port = port;
 			this.id = id;
 			readConfig(configPath);
@@ -52,9 +52,7 @@ public class Router extends Thread {
 
 			while (true) {
 				ipPacket = netLayer.getPacket();
-				
-					send2Route(ipPacket);
-				
+				send2Route(ipPacket);
 			}
 
 		} catch (SocketException e) {
@@ -83,12 +81,18 @@ public class Router extends Thread {
 			String fileLine = br.readLine();
 			while (fileLine != null) {
 				String[] splitfileLine = fileLine.split(";");
+				String destIp = "";
+
 				if (splitfileLine[0].contains("/")) {
-					routes.add(new Route(splitfileLine[0].split("/")[0], splitfileLine[1],
-							Integer.parseInt(splitfileLine[2]), this));
+					destIp = splitfileLine[0].split("/")[0];
 				} else {
-					routes.add(new Route(splitfileLine[0], splitfileLine[1], Integer.parseInt(splitfileLine[2]), this));
+					destIp = splitfileLine[0];
 				}
+
+				String nextIp = splitfileLine[1];
+				int nextPort = Integer.parseInt(splitfileLine[2]);
+				Route route = new Route(destIp, nextIp, nextPort, this);
+				routes.add(route);
 				fileLine = br.readLine();
 			}
 			br.close();
@@ -113,7 +117,7 @@ public class Router extends Thread {
 	 * @return the Right Route
 	 * @throws RouteNotExistException
 	 */
-	public Route findRightRoute(IpPacket ipPack) throws RouteNotExistException {
+	public Route findBestRoute(IpPacket ipPack) throws RouteNotExistException {
 
 		Route bestRoute = null;
 		String string2BestRoute = null;
@@ -124,12 +128,20 @@ public class Router extends Thread {
 			Route tempRoute = routes.get(i);
 
 			if (tempRoute.destIp.equals(ipPack.getDestinationAddress())) {
-				boolean isBetter = (bestRoute == null
-						|| betterIP(string2BestRoute, toBinary(routes.get(i).nextIp), stringDestinationAddress));
 
-				if (isBetter) {
+				boolean isBestRouteNull = bestRoute == null;
+				if (isBestRouteNull) {
 					string2BestRoute = toBinary(routes.get(i).nextIp);
 					bestRoute = tempRoute;
+					break;
+				}
+
+				boolean isIPBetter = betterIP(string2BestRoute, toBinary(routes.get(i).nextIp),
+						stringDestinationAddress);
+				if (isIPBetter) {
+					string2BestRoute = toBinary(routes.get(i).nextIp);
+					bestRoute = tempRoute;
+					break;
 				}
 			}
 		}
@@ -155,7 +167,7 @@ public class Router extends Thread {
 				printPacket(revievedPack);
 				netLayer.sendPacket(revievedPack);
 			} else {
-				Route newRoute = findRightRoute(revievedPack); // findRight Route 2x
+				Route newRoute = findBestRoute(revievedPack);
 				revievedPack.setHopLimit(revievedPack.getHopLimit() - 1);
 				revievedPack.setNextHopIp(newRoute.getNextIp());
 				revievedPack.setNextPort(newRoute.getNextPort());
@@ -180,8 +192,8 @@ public class Router extends Thread {
 	public void routeNotExist(IpPacket revievedPack) {
 		try {
 			System.out.println("Route zu: " + revievedPack.getDestinationAddress() + " exestiert nicht!");
-			revievedPack = setUpAsICMP(revievedPack, DESTINATIONUNREACHABLE);
 			printPacket(revievedPack);
+			revievedPack = setUpAsICMP(revievedPack, DESTINATIONUNREACHABLE);
 			netLayer.sendPacket(revievedPack);
 		} catch (UnknownHostException e1) {
 			e1.printStackTrace();
@@ -202,16 +214,19 @@ public class Router extends Thread {
 	public IpPacket setUpAsICMP(IpPacket ipPack, String msg) throws UnknownHostException {
 
 		Inet6Address dest = ipPack.getSourceAddress();
-		Inet6Address source = (Inet6Address) Inet6Address.getByName(this.inet6Address);
+		Inet6Address source = this.inet6Address;
 
 		IpPacket newIpPacket = new IpPacket(source, dest, HOPLIMIT, null, 0);
 
 		try {
-			Route route = findRightRoute(newIpPacket);
+			// Get info Routing Info
+			Route route = findBestRoute(newIpPacket);
 
 			newIpPacket.setNextHopIp(route.getNextIp());
 			newIpPacket.setNextPort(route.getNextPort());
 			newIpPacket.setHopLimit(HOPLIMIT);
+
+			// setup Controlpacket
 			ControlPacket controlPacket;
 			if (msg.equals(TIMEEXCEEDET)) {
 				controlPacket = new ControlPacket(ControlPacket.Type.TimeExceeded, new byte[0]);
@@ -219,6 +234,7 @@ public class Router extends Thread {
 				controlPacket = new ControlPacket(ControlPacket.Type.DestinationUnreachable, new byte[0]);
 			}
 			newIpPacket.setControlPayload(controlPacket.getBytes());
+
 		} catch (RouteNotExistException e) {
 			e.printStackTrace();
 		}
@@ -241,13 +257,15 @@ public class Router extends Thread {
 		char[] charOldAddr = oldAddr.toCharArray();
 		char[] charNewAddr = newAddr.toCharArray();
 
+		/**
+		 * return true if the Char on Position "i" in "OldBestAddr" is not equals then
+		 * the Char on Position "i" in "DestAddr", but the Char on Position "i" in
+		 * "NewBestAddr" is equals then the Char on Position "i" in "DestAddr".
+		 */
 		for (int i = 0; i < charDestAddr.length; i++) {
-			if (charDestAddr[i] != charOldAddr[i]) {
-				if (charDestAddr[i] == charNewAddr[i]) {
-					return true;
-				}
+			if (charDestAddr[i] != charOldAddr[i] && charDestAddr[i] == charNewAddr[i]) {
+				return true;
 			}
-
 		}
 		return false;
 
@@ -270,7 +288,7 @@ public class Router extends Thread {
 	}
 
 	private void outERR(String msg) {
-		System.err.println("Router " + id + ": " + msg);
+		System.out.println("Router " + id + ": " + msg);
 	}
 
 	private void out2Console(String msg) {
@@ -279,7 +297,7 @@ public class Router extends Thread {
 
 	private void printPacket(IpPacket revievedPack) {
 
-		boolean ismsg = false;
+		boolean isData = false;
 		String msg = "";
 		try {
 			msg = ("MSG: " + revievedPack.getDataPacket().toString());
@@ -287,12 +305,13 @@ public class Router extends Thread {
 		} catch (NoSuchElementException e) {
 			outERR("------------" + "ICMP Type: " + revievedPack.getControlPacket().toString() + "------------");
 		}
-		out2Console("from: " + revievedPack.getSourceAddress());
-		out2Console("to:   " + revievedPack.getDestinationAddress());
-		out2Console("via:  " + revievedPack.getNextHopIp() + "/" + revievedPack.getNextHopPort());
+		out2Console("from:     " + revievedPack.getSourceAddress());
+		out2Console("now on:   " + inet6Address + "/" + port);
+		out2Console("via:      " + revievedPack.getNextHopIp() + "/" + revievedPack.getNextHopPort());
+		out2Console("to:       " + revievedPack.getDestinationAddress());
 		out2Console("HOPLIMIT: " + revievedPack.getHopLimit());
 
-		if (ismsg) {
+		if (isData) {
 			out2Console("MSG: " + msg);
 		}
 
